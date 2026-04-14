@@ -18,19 +18,20 @@ export default function Sidebar() {
 
   const pathname = usePathname()
   const { collapsed, open, closeMobile } = useSidebar()
-  
+
   return (
     <>
       {open && (
         <div
-          className="fixed inset-0 bg-black/40 md:hidden"
+          className="fixed inset-0 bg-black/40 md:hidden transition-opacity duration-300"
           onClick={closeMobile}
         />
       )}
 
       <aside
         className={clsx(
-          "fixed md:relative z-40 h-full bg-white dark:bg-gray-900 border-r transition-all duration-300",
+          "fixed md:relative z-40 h-full bg-white dark:bg-gray-900 shadow-lg flex flex-col",
+          "transition-[width,transform] duration-300 ease-in-out",
 
           collapsed ? "md:w-20" : "md:w-60",
 
@@ -40,22 +41,30 @@ export default function Sidebar() {
       >
 
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-6">
+        <div
+          className={clsx(
+            "flex items-center gap-3 px-6 py-6 transition-all",
+            collapsed && "md:justify-center md:px-0"
+          )}
+        >
 
-          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-indigo-600 text-white">
+          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-indigo-600 text-white shrink-0">
             <HeartPulse size={20}/>
           </div>
 
-          {!collapsed && (
-            <div>
-              <p className="text-lg font-semibold text-indigo-600">
-                MoldGuard
-              </p>
-              <p className="text-xs tracking-widest text-gray-400">
-                MOLD DETECTION
-              </p>
-            </div>
-          )}
+          <div
+            className={clsx(
+              "transition-all duration-200 overflow-hidden",
+              collapsed ? "md:opacity-0 md:w-0" : "opacity-100 w-auto"
+            )}
+          >
+            <p className="text-lg font-semibold text-indigo-600">
+              MoldGuard
+            </p>
+            <p className="text-xs tracking-widest text-gray-400">
+              MOLD DETECTION
+            </p>
+          </div>
 
         </div>
 
@@ -130,29 +139,27 @@ function Menu({
       href={href}
       onClick={closeMobile}
       className={clsx(
-        "relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+        "relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ease-in-out",
+        collapsed && "md:justify-center md:px-0",
 
         active
           ? "bg-indigo-50 text-indigo-600"
-          : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800",
-
-        collapsed && "justify-center"
+          : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
       )}
     >
 
-      {/* Active indicator */}
       {active && !collapsed && (
         <div className="absolute right-0 top-2 bottom-2 w-1 bg-indigo-600 rounded-l-full"/>
       )}
 
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center w-5 h-5">
         {icon}
       </div>
 
       <span
         className={clsx(
-          "text-sm font-medium whitespace-nowrap",
-          collapsed && "hidden"
+          "text-sm font-medium whitespace-nowrap transition-all duration-200 overflow-hidden",
+          collapsed ? "md:opacity-0 md:w-0" : "opacity-100 w-auto"
         )}
       >
         {label}

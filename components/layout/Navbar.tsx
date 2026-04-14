@@ -20,7 +20,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 bg-white dark:bg-gray-900 border-b">
+    <header className="h-16 flex items-center justify-between px-6 bg-white dark:bg-gray-900 shadow-md">
 
       <button onClick={handleMenu}>
         <Menu size={20}/>
