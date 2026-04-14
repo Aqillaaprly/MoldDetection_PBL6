@@ -3,7 +3,7 @@ import DeviceToggle from "@/components/dashboard/DeviceToggle"
 import ActivityTimeline from "@/components/dashboard/ActivityTimeline"
 import AnalyticsChart from "@/components/dashboard/AnalyticsChart"
 
-export default function Dashboard() {
+export default function MonitoringPage() {
 
   return (
     <div className="space-y-6">
