@@ -6,7 +6,7 @@ import { FileText, Target, Cpu, Lightbulb, Users } from "lucide-react"
 
 export default function AboutSection() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
 
       {/* TOP GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -10,7 +10,7 @@ export default function RootLayout({
 
   return (
     <html>
-      <body className="bg-gray-100 dark:bg-gray-950">
+      <body className="min-h-screen bg-gray-100 dark:bg-gray-950">
 
         <div className="flex h-screen">
 
@@ -20,7 +20,7 @@ export default function RootLayout({
 
             <Navbar/>
 
-            <main className="p-6 overflow-y-auto">
+            <main className="flex-1 p-6 overflow-y-auto">
               {children}
             </main>
 

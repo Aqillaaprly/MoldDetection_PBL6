@@ -86,13 +86,6 @@ export default function Sidebar() {
           />
 
           <Menu
-            href="/about"
-            icon={<Info size={20}/>}
-            label="About"
-            active={pathname === "/about"}
-          />
-
-          <Menu
             href="/devices"
             icon={<Cpu size={20}/>}
             label="Devices"
@@ -111,6 +104,13 @@ export default function Sidebar() {
             icon={<Settings size={20}/>}
             label="Settings"
             active={pathname === "/settings"}
+          />
+
+          <Menu
+            href="/about"
+            icon={<Info size={20}/>}
+            label="About"
+            active={pathname === "/about"}
           />
 
         </nav>
