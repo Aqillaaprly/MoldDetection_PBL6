@@ -7,7 +7,7 @@ import {
   LayoutDashboard,
   Activity,
   Cpu,
-  LineChart,
+  Info,
   Bell,
   Settings,
   HeartPulse
@@ -77,10 +77,10 @@ export default function Sidebar() {
           />
 
           <Menu
-            href="/analytics"
-            icon={<LineChart size={20}/>}
-            label="Analytics"
-            active={pathname === "/analytics"}
+            href="/about"
+            icon={<Info size={20}/>}
+            label="About"
+            active={pathname === "/about"}
           />
 
           <Menu
