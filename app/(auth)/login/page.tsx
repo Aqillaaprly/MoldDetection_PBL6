@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { login } from "@/lib/auth"
 
-export default function LoginForm() {
+export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -25,7 +25,6 @@ export default function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100">
 
-      {/* CARD */}
       <div className="w-[900px] md:w-[1000px] h-[420px] backdrop-blur-xl bg-white/80 rounded-2xl shadow-[0_20px_60px_rgba(99,102,241,0.25)] overflow-hidden grid grid-cols-2 animate-fadeIn">
 
         {/* LEFT */}
@@ -65,7 +64,6 @@ export default function LoginForm() {
         {/* RIGHT */}
         <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 flex items-center justify-center text-white relative">
 
-          {/* glow effect */}
           <div className="absolute w-40 h-40 bg-white/20 rounded-full blur-3xl top-10 left-10"></div>
 
           <div className="text-center z-10">
