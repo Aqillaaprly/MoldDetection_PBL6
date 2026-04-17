@@ -2,33 +2,26 @@ import "../globals.css"
 import Navbar from "@/components/layout/Navbar"
 import Sidebar from "@/components/layout/Sidebar"
 
-export default function RootLayout({
+export default function MainLayout({
   children,
-}:{
-  children:React.ReactNode
+}: {
+  children: React.ReactNode
 }) {
-
   return (
-    <html>
-      <body className="min-h-screen bg-gray-100 dark:bg-gray-950">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-950">
 
-        <div className="flex h-screen">
+      <Sidebar />
 
-          <Sidebar/>
+      <div className="flex flex-col flex-1 min-w-0">
 
-          <div className="flex flex-col flex-1 min-w-0">
+        <Navbar />
 
-            <Navbar/>
+        <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden">
+          {children}
+        </main>
 
-            <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden">
-              {children}
-            </main>
+      </div>
 
-          </div>
-
-        </div>
-
-      </body>
-    </html>
+    </div>
   )
 }

@@ -2,7 +2,7 @@
 
 import { Menu, Moon, Sun } from "lucide-react"
 import { useSidebar } from "@/hooks/useSidebar"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function Navbar() {
 
@@ -14,8 +14,40 @@ export default function Navbar() {
     else toggleSidebar()
   }
 
+  useEffect(() => {
+
+    const savedTheme = localStorage.getItem("theme")
+
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark")
+      setDark(true)
+    }
+
+    else if (savedTheme === "light") {
+      document.documentElement.classList.remove("dark")
+      setDark(false)
+    }
+
+    else {
+      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+      if (systemDark) {
+        document.documentElement.classList.add("dark")
+        setDark(true)
+      }
+    }
+
+  }, [])
+
   const toggleDark = () => {
-    document.documentElement.classList.toggle("dark")
+
+    if (dark) {
+      document.documentElement.classList.remove("dark")
+      localStorage.setItem("theme", "light")
+    } else {
+      document.documentElement.classList.add("dark")
+      localStorage.setItem("theme", "dark")
+    }
+
     setDark(!dark)
   }
 
