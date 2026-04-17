@@ -43,11 +43,11 @@ const CustomTooltip = ({ active, payload, chartDataKey }: CustomTooltipProps) =>
     }
 
     return (
-      <div className="rounded-lg border border-gray-600 bg-gray-900/95 backdrop-blur px-4 py-2 shadow-xl">
-        <p className="text-sm font-medium text-indigo-400">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur px-4 py-2 shadow-xl">
+        <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
           {getLabel()}
         </p>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           {label}
         </p>
       </div>
@@ -61,6 +61,7 @@ export default function TrendChart({
   data,
   dataKey
 }: TrendChartProps) {
+
   const getColor = () => {
     switch (dataKey) {
       case "humidity":
@@ -77,64 +78,96 @@ export default function TrendChart({
   const getIcon = () => {
     switch (dataKey) {
       case "humidity":
-        return <Droplet size={20} className="text-cyan-400" />
+        return <Droplet size={20} className="text-cyan-500 dark:text-cyan-400" />
       case "temperature":
-        return <Thermometer size={20} className="text-orange-400" />
+        return <Thermometer size={20} className="text-orange-500 dark:text-orange-400" />
       case "light":
-        return <Lightbulb size={20} className="text-purple-400" />
+        return <Lightbulb size={20} className="text-purple-500 dark:text-purple-400" />
       default:
-        return <Droplet size={20} className="text-indigo-400" />
+        return <Droplet size={20} className="text-indigo-500 dark:text-indigo-400" />
     }
   }
 
   return (
-    <div className="rounded-2xl border border-gray-700 bg-gray-800/50 backdrop-blur p-6 hover:border-gray-600 transition-all duration-300 group">
+    <div className="
+      rounded-2xl border p-6 transition-all duration-300 group
+
+      bg-white border-gray-200
+      dark:bg-gray-900 dark:border-gray-800
+
+      hover:border-gray-300 dark:hover:border-gray-700
+    ">
+
       {/* Header */}
       <div className="mb-6">
-        <h3 className="flex items-center gap-2 font-semibold text-white text-lg">
-          <div className="p-2 rounded-lg bg-gray-700/50 group-hover:bg-gray-700 transition-all">
+        <h3 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white text-lg">
+
+          <div className="
+            p-2 rounded-lg transition-all
+
+            bg-gray-100
+            dark:bg-gray-800
+
+            group-hover:bg-gray-200
+            dark:group-hover:bg-gray-700
+          ">
             {getIcon()}
           </div>
+
           {title}
+
         </h3>
       </div>
 
       {/* Chart */}
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+
           <defs>
             <linearGradient id={`gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={getColor()} stopOpacity={0.3} />
               <stop offset="95%" stopColor={getColor()} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke="#374151" 
+
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#e5e7eb"
+            className="dark:stroke-gray-700"
             vertical={false}
           />
+
           <XAxis
             dataKey="time"
-            tick={{ fontSize: 11, fill: "#9ca3af" }}
-            stroke="#4b5563"
+            tick={{ fontSize: 11 }}
+            className="text-gray-500 dark:text-gray-400"
+            stroke="#9ca3af"
             axisLine={false}
             tickLine={false}
           />
-          <YAxis 
-            tick={{ fontSize: 11, fill: "#9ca3af" }}
-            stroke="#4b5563"
+
+          <YAxis
+            tick={{ fontSize: 11 }}
+            className="text-gray-500 dark:text-gray-400"
+            stroke="#9ca3af"
             axisLine={false}
             tickLine={false}
             width={40}
           />
-          <Tooltip 
+
+          <Tooltip
             content={(props: unknown) => {
               const typedProps = props as CustomTooltipProps
               return <CustomTooltip {...typedProps} chartDataKey={dataKey} />
             }}
-            cursor={{ stroke: "#4f46e5", strokeWidth: 2, strokeDasharray: "5 5" }}
+            cursor={{
+              stroke: "#4f46e5",
+              strokeWidth: 2,
+              strokeDasharray: "5 5"
+            }}
             contentStyle={{ background: "transparent", border: "none", padding: 0 }}
           />
+
           <Line
             type="monotone"
             dataKey={dataKey}
@@ -142,12 +175,14 @@ export default function TrendChart({
             strokeWidth={3}
             dot={false}
             activeDot={{ r: 5, fill: getColor() }}
-            isAnimationActive={true}
+            isAnimationActive
             animationDuration={800}
             animationEasing="ease-in-out"
           />
+
         </LineChart>
       </ResponsiveContainer>
+
     </div>
   )
 }
