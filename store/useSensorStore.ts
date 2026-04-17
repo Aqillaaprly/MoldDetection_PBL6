@@ -4,18 +4,18 @@ interface SensorState {
   humidity: number
   temperature: number
   light: number
-  updateSensors: () => void
+  setSensorData: (data: any) => void
 }
 
 export const useSensorStore = create<SensorState>((set) => ({
-  humidity: 78,
-  temperature: 29,
-  light: 65,
+  humidity: 0,
+  temperature: 0,
+  light: 0,
 
-  updateSensors: () =>
-    set(() => ({
-      humidity: Math.floor(Math.random() * 20) + 60,
-      temperature: Math.floor(Math.random() * 5) + 26,
-      light: Math.floor(Math.random() * 40) + 40
-    }))
+  setSensorData: (data) =>
+    set({
+      humidity: data.humidity,
+      temperature: data.temperature,
+      light: data.light,
+    }),
 }))
