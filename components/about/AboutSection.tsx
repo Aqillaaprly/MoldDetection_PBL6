@@ -17,14 +17,18 @@ export default function AboutSection() {
           icon={<FileText size={18} />}
           variant="gradient"
         >
-          <p>
-            Sistem ini merupakan aplikasi berbasis IoT yang digunakan untuk
-            mendeteksi potensi pertumbuhan jamur berdasarkan suhu, kelembapan,
-            dan cahaya secara real-time.
+          <p className="mt-2">
+            MoldGuard is a system with IoT based application used to detect potential mold growth based on temerature, humidity, and light in real-time.
+            This system works by collecting data from sensors and can also automate devices like air purifiers to maintain air quality.
+            The system will help users to detect mold growth early, maintain air quality, and automate the devices for better efficiency in 
+            maintaining a healthy indoor environment.
+
           </p>
           <p className="mt-2">
-            Sistem ini juga mampu melakukan otomatisasi perangkat seperti air
-            purifier untuk menjaga kualitas udara.
+            This system also capable of automating devices such as air purifiers to maintain air quality.
+            With this system, users can monitor the conditions of their indoor environment and take necessary actions to prevent mold growth and maintain 
+            a healthy living space.
+            This feature also helps users to save energy and improve the efficiency of their devices by automating them based on the sensor data.
           </p>
         </AboutContainer>
 
@@ -37,9 +41,9 @@ export default function AboutSection() {
             iconBg="bg-green-100 text-green-600"
           >
             <ul className="list-disc ml-5">
-              <li>Mendeteksi jamur lebih awal</li>
-              <li>Menjaga kualitas udara</li>
-              <li>Otomatisasi sistem</li>
+              <li>Early detection of mold growth</li>
+              <li>Maintaining air quality</li>
+              <li>System automation</li>
             </ul>
           </AboutContainer>
 
@@ -77,26 +81,26 @@ export default function AboutSection() {
 
           <TeamCard
             name="Aqilla Aprily"
-            role="Frontend Developer"
-            image="/team/aqilla.jpg"
+            role=""
+            image="/team/aqilla.jpeg"
           />
 
           <TeamCard
-            name="Nama 2"
-            role="Backend Developer"
-            image="/team/user2.jpg"
+            name="Febrian Arka Samudra"
+            role=""
+            image="/team/arka.jpeg"
           />
 
           <TeamCard
-            name="Nama 3"
-            role="IoT Engineer"
-            image="/team/user3.jpg"
+            name="Muhammad Atho’illah Mu’thisyah"
+            role=""
+            image="/team/faiz.jpeg"
           />
 
           <TeamCard
-            name="Nama 4"
-            role="Data Analyst"
-            image="/team/user4.jpg"
+            name="Sherly Lutfi Azkiah Sulistyawati"
+            role=""
+            image="/team/sherly.jpeg"
           />
 
         </div>
