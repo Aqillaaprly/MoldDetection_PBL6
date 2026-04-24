@@ -42,7 +42,7 @@ export default function ActivityTimeline() {
 
       <div className="space-y-6">
 
-        {logs.slice(0,6).map((log, i) => (
+        {logs.slice(0,4).map((log, i) => (
           <div key={i} className="flex gap-4 items-start">
 
             <div className={`
@@ -80,7 +80,7 @@ export default function ActivityTimeline() {
 
       </div>
 
-      {logs.length > 7 && (
+      {logs.length > logs.slice(0,4).length && (
         <button className="mt-6 w-full border rounded-xl py-2 text-sm text-gray-600 hover:bg-gray-50">
           View Complete Logs
         </button>
