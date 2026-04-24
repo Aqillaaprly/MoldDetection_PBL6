@@ -22,7 +22,7 @@ export default function AboutContainer({
         ${
           isGradient
             ? "bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600"
-            : "bg-white shadow-sm border border-gray-100"
+            : "bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800"
         }
       `}
     >
@@ -34,7 +34,7 @@ export default function AboutContainer({
             className={`p-2 rounded-lg ${
               isGradient
                 ? "bg-white/20 text-white"
-                : iconBg
+                : `${iconBg} dark:bg-gray-800 dark:text-gray-200`
             }`}
           >
             {icon}
@@ -45,7 +45,7 @@ export default function AboutContainer({
           className={`font-semibold text-sm uppercase ${
             isGradient
               ? "text-white/80"
-              : "text-gray-500"
+              : "text-gray-500 dark:text-gray-400"
           }`}
         >
           {title}
@@ -57,7 +57,7 @@ export default function AboutContainer({
         className={`text-sm leading-relaxed ${
           isGradient
             ? "text-white"
-            : "text-gray-600"
+            : "text-gray-600 dark:text-gray-300"
         }`}
       >
         {children}
