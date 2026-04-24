@@ -23,7 +23,7 @@ export default function Sidebar() {
     <>
       {open && (
         <div
-          className="fixed inset-0 bg-black/40 md:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/40 md:hidden transition-opacity duration-300 z-40"
           onClick={closeMobile}
         />
       )}
@@ -90,13 +90,6 @@ export default function Sidebar() {
             icon={<Cpu size={20}/>}
             label="Devices"
             active={pathname === "/devices"}
-          />
-
-          <Menu
-            href="/alerts"
-            icon={<Bell size={20}/>}
-            label="Alerts"
-            active={pathname === "/alerts"}
           />
 
           <Menu
