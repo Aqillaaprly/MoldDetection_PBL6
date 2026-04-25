@@ -7,6 +7,7 @@ import SensorCard from "@/components/dashboard/SensorCard"
 import DeviceToggle from "@/components/dashboard/DeviceToggle"
 import ActivityTimeline from "@/components/dashboard/ActivityTimeline"
 import AnalyticsChart from "@/components/dashboard/AnalyticsChart"
+import MoldRiskCard from "@/components/dashboard/MoldRiskCard"
 
 import { db } from "@/lib/firebase"
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore"
@@ -50,9 +51,32 @@ export default function Dashboard() {
     <div className="space-y-6">
 
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-slate-800">
+
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
           Dashboard
         </h1>
+
+        <select
+          className="
+            bg-white dark:bg-gray-800
+            text-gray-700 dark:text-gray-200
+            border border-gray-200 dark:border-gray-700
+            rounded-xl
+            px-4 py-2
+            text-sm
+            font-medium
+            shadow-sm
+            focus:outline-none
+            focus:ring-2
+            focus:ring-indigo-500
+          "
+        >
+          <option className="bg-white dark:bg-gray-800">Living Room</option>
+          <option className="bg-white dark:bg-gray-800">Bedroom 1</option>
+          <option className="bg-white dark:bg-gray-800">Bedroom 2</option>
+          <option className="bg-white dark:bg-gray-800">Kitchen</option>
+        </select>
+
       </div>
       
       <SensorCard />
@@ -67,7 +91,13 @@ export default function Dashboard() {
 
         </div>
 
-        <ActivityTimeline />
+        <div className="space-y-6">
+
+          <MoldRiskCard />
+
+          <ActivityTimeline />
+
+        </div>
 
       </div>
 
