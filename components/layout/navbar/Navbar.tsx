@@ -1,6 +1,6 @@
 "use client"
 
-import { Menu, Moon, Sun, Bell } from "lucide-react"
+import { Menu, Moon, Sun, Bell, Settings, LogOut } from "lucide-react"
 import { useSidebar } from "@/hooks/useSidebar"
 import { useEffect, useState, useRef } from "react"
 import NotificationPanel from "./NotificationPanel"
@@ -11,8 +11,10 @@ export default function Navbar() {
 
   const [dark, setDark] = useState(false)
   const [openNotif, setOpenNotif] = useState(false)
+  const [openProfile, setOpenProfile] = useState(false)
 
   const notifRef = useRef<HTMLDivElement>(null)
+  const profileRef = useRef<HTMLDivElement>(null)
 
   const handleMenu = () => {
     if (window.innerWidth < 768) toggleMobile()
@@ -42,16 +44,25 @@ export default function Navbar() {
 
   }, [])
 
-  /* CLICK OUTSIDE NOTIFICATION */
+  /* CLICK OUTSIDE */
   useEffect(() => {
 
     function handleClickOutside(event: MouseEvent) {
+
       if (
         notifRef.current &&
         !notifRef.current.contains(event.target as Node)
       ) {
         setOpenNotif(false)
       }
+
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setOpenProfile(false)
+      }
+
     }
 
     document.addEventListener("mousedown", handleClickOutside)
@@ -76,6 +87,15 @@ export default function Navbar() {
     setDark(!dark)
   }
 
+  const handleLogout = async () => {
+
+    await fetch("/api/logout", {
+      method: "POST"
+    })
+
+    window.location.href = "/login"
+  }
+
   return (
     <header className="h-16 flex items-center justify-between px-6 bg-white dark:bg-gray-900 shadow-md relative z-10">
 
@@ -95,11 +115,9 @@ export default function Navbar() {
           >
             <Bell size={18} />
 
-            {/* notification badge */}
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"/>
           </button>
 
-          {/* Notification Dropdown */}
           {openNotif && <NotificationPanel />}
 
         </div>
@@ -109,11 +127,36 @@ export default function Navbar() {
           {dark ? <Sun size={18}/> : <Moon size={18}/>}
         </button>
 
-        {/* AVATAR */}
-        <img
-          src="https://i.pravatar.cc/40"
-          className="w-8 h-8 rounded-full"
-        />
+        {/* PROFILE */}
+        <div className="relative" ref={profileRef}>
+
+          <button onClick={() => setOpenProfile(!openProfile)}>
+            <img
+              src="https://i.pravatar.cc/40"
+              className="w-8 h-8 rounded-full"
+            />
+          </button>
+
+          {openProfile && (
+            <div className="absolute right-0 mt-3 w-44 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
+
+              <button className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">
+                <Settings size={16}/>
+                Settings
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 w-full px-4 py-3 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <LogOut size={16}/>
+                Logout
+              </button>
+
+            </div>
+          )}
+
+        </div>
 
       </div>
 

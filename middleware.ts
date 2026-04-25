@@ -2,18 +2,23 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export function middleware(request: NextRequest) {
+
   const token = request.cookies.get("token")?.value
   const { pathname } = request.nextUrl
 
-  const isLoginPage = pathname.startsWith("/login")
+  const publicRoutes = ["/login"]
 
-  // Kalau belum login dan bukan di halaman login → redirect ke login
-  if (!token && !isLoginPage) {
+  const isPublic = publicRoutes.some(route =>
+    pathname.startsWith(route)
+  )
+
+  // Jika belum login dan buka halaman protected
+  if (!token && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  // Kalau sudah login tapi masih di halaman login → redirect ke dashboard
-  if (token && isLoginPage) {
+  // Jika sudah login tapi buka login page
+  if (token && pathname === "/login") {
     return NextResponse.redirect(new URL("/", request.url))
   }
 
@@ -22,6 +27,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 }
