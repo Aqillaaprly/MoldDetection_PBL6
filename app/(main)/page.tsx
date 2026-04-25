@@ -9,40 +9,29 @@ import ActivityTimeline from "@/components/dashboard/ActivityTimeline"
 import AnalyticsChart from "@/components/dashboard/AnalyticsChart"
 import MoldRiskCard from "@/components/dashboard/MoldRiskCard"
 
-import { db } from "@/lib/firebase"
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore"
+import { getSensorHubs } from "@/services/sensorService"
 
 export default function Dashboard() {
   const setSensorData = useSensorStore((state) => state.setSensorData)
 
   useEffect(() => {
-    const fetchFromFirebase = async () => {
+    const fetchFromSupabase = async () => {
       try {
-        await fetch("/api/sensors")
+        const data = await getSensorHubs()
 
-        const q = query(
-          collection(db, "sensors"),
-          orderBy("time", "desc"),
-          limit(1)
-        )
+        console.log("DATA SUPABASE:", data)
 
-        const snapshot = await getDocs(q)
-
-        snapshot.forEach((doc) => {
-          const data = doc.data()
-
-          console.log("DATA FIREBASE:", data)
-
-          setSensorData(data)
-        })
+        if (data.length > 0) {
+          setSensorData(data[0]) // ambil terbaru
+        }
       } catch (error) {
-        console.error("ERROR FETCH FIREBASE:", error)
+        console.error("ERROR FETCH SUPABASE:", error)
       }
     }
 
-    fetchFromFirebase()
+    fetchFromSupabase()
 
-    const interval = setInterval(fetchFromFirebase, 5000)
+    const interval = setInterval(fetchFromSupabase, 5000)
 
     return () => clearInterval(interval)
   }, [])
