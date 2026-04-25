@@ -15,25 +15,29 @@ export default function Dashboard() {
   const setSensorData = useSensorStore((state) => state.setSensorData)
 
   useEffect(() => {
-    const fetchFromSupabase = async () => {
-      try {
-        const data = await getSensorHubs()
+  const fetchFromSupabase = async () => {
+    try {
+      // generate + insert data
+      await fetch("/api/sensors")
 
-        console.log("DATA SUPABASE:", data)
+      // ambil data terbaru
+      const data = await getSensorHubs()
 
-        if (data.length > 0) {
-          setSensorData(data[0]) // ambil terbaru
-        }
-      } catch (error) {
-        console.error("ERROR FETCH SUPABASE:", error)
+      console.log("DATA SUPABASE:", data)
+
+      if (data.length > 0) {
+        setSensorData(data[0])
       }
+    } catch (error) {
+      console.error("ERROR FETCH SUPABASE:", error)
     }
+  }
 
-    fetchFromSupabase()
+  fetchFromSupabase()
 
-    const interval = setInterval(fetchFromSupabase, 5000)
+  const interval = setInterval(fetchFromSupabase, 5000)
 
-    return () => clearInterval(interval)
+  return () => clearInterval(interval)
   }, [])
 
   return (
