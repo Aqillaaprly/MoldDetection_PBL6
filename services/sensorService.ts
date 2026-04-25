@@ -24,7 +24,7 @@ export const getSensorHubs = async () => {
       light: item.light,
 
       currentValue: `${item.temperature}°C / ${item.humidity}% RH`,
-      status: item.humidity > 70 ? "ALERT" : "ACTIVE",
+      status: item.humidity > 70 ? "ALERT" as const : "ACTIVE" as const,
       battery: 90,
       lastSync: "Just Now"
     }))
