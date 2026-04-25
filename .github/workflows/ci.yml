@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-        name: Run ESLint
+      - name: Run ESLint
         run: npm run lint
 
       - name: TypeScript Type Check
