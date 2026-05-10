@@ -39,7 +39,7 @@ export const getTrendData = async (): Promise<MetricData[]> => {
   const { data, error } = await supabase
     .from('sensor_data')
     .select('*')
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
     .limit(10)
 
   if (error) {
@@ -48,7 +48,11 @@ export const getTrendData = async (): Promise<MetricData[]> => {
   }
 
   return data.map((item) => ({
-    time: new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    time: new Date(item.created_at).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }),
     humidity: item.humidity,
     temperature: item.temperature,
     light: item.light

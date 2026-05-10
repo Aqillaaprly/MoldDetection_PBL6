@@ -4,7 +4,20 @@ import { Droplet, Thermometer, Sun } from "lucide-react"
 import clsx from "clsx"
 
 export default function SensorCard() {
-  const { humidity, temperature, light } = useSensorStore()
+  const {
+    humidity,
+    temperature,
+    light,
+
+    previousHumidity,
+    previousTemperature,
+    previousLight
+
+  } = useSensorStore()
+
+  const humidityChange = humidity - previousHumidity
+  const temperatureChange = temperature - previousTemperature
+  const lightChange = light - previousLight
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -14,7 +27,7 @@ export default function SensorCard() {
         icon={<Droplet size={18} />}
         status="HIGH"
         color="red"
-        change="-12%"
+        change={`${humidityChange > 0 ? "+" : ""}${humidityChange}%`}
       />
 
       <Card
@@ -23,7 +36,7 @@ export default function SensorCard() {
         icon={<Thermometer size={18} />}
         status="NORMAL"
         color="green"
-        change="+0.2"
+        change={`${temperatureChange > 0 ? "+" : ""}${temperatureChange.toFixed(1)}`}
       />
 
       <Card
@@ -32,7 +45,7 @@ export default function SensorCard() {
         icon={<Sun size={18} />}
         status="LOW"
         color="gray"
-        change="-5%"
+        change={`${lightChange > 0 ? "+" : ""}${lightChange}`}
       />
     </div>
   )
