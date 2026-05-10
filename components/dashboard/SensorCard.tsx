@@ -1,10 +1,13 @@
 "use client"
+
 import { useSensorStore } from "@/store/useSensorStore"
 import { Droplet, Thermometer, Sun } from "lucide-react"
 import clsx from "clsx"
 
 export default function SensorCard() {
+
   const {
+
     humidity,
     temperature,
     light,
@@ -20,13 +23,15 @@ export default function SensorCard() {
   const lightChange = light - previousLight
 
   return (
+
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
       <Card
         title="HUMIDITY"
         value={`${humidity}%`}
         icon={<Droplet size={18} />}
-        status="HIGH"
-        color="red"
+        status={humidity > 80 ? "HIGH" : "NORMAL"}
+        color={humidity > 80 ? "red" : "green"}
         change={`${humidityChange > 0 ? "+" : ""}${humidityChange}%`}
       />
 
@@ -34,8 +39,8 @@ export default function SensorCard() {
         title="TEMPERATURE"
         value={`${temperature}°C`}
         icon={<Thermometer size={18} />}
-        status="NORMAL"
-        color="green"
+        status={temperature > 30 ? "HOT" : "NORMAL"}
+        color={temperature > 30 ? "red" : "green"}
         change={`${temperatureChange > 0 ? "+" : ""}${temperatureChange.toFixed(1)}`}
       />
 
@@ -43,10 +48,11 @@ export default function SensorCard() {
         title="LIGHT INTENSITY"
         value={`${light} lux`}
         icon={<Sun size={18} />}
-        status="LOW"
-        color="gray"
+        status={light > 700 ? "HIGH" : "NORMAL"}
+        color={light > 700 ? "red" : "gray"}
         change={`${lightChange > 0 ? "+" : ""}${lightChange}`}
       />
+
     </div>
   )
 }
@@ -59,7 +65,9 @@ function Card({
   color,
   change
 }: any) {
+
   return (
+
     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
 
       {/* Top */}
@@ -74,9 +82,15 @@ function Card({
         <span
           className={clsx(
             "text-xs px-3 py-1 rounded-full font-medium",
-            color === "red" && "bg-red-100 text-red-600",
-            color === "green" && "bg-green-100 text-green-600",
-            color === "gray" && "bg-gray-200 text-gray-600"
+
+            color === "red" &&
+              "bg-red-100 text-red-600",
+
+            color === "green" &&
+              "bg-green-100 text-green-600",
+
+            color === "gray" &&
+              "bg-gray-200 text-gray-600"
           )}
         >
           {status}
@@ -99,9 +113,15 @@ function Card({
         <span
           className={clsx(
             "text-sm font-medium",
-            color === "red" && "text-red-500",
-            color === "green" && "text-green-500",
-            color === "gray" && "text-gray-400"
+
+            color === "red" &&
+              "text-red-500",
+
+            color === "green" &&
+              "text-green-500",
+
+            color === "gray" &&
+              "text-gray-400"
           )}
         >
           {change}

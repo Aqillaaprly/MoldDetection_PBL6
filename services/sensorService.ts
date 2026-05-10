@@ -1,67 +1,151 @@
 import { supabase } from '@/lib/supabase'
 import { SensorHub, MetricData } from "@/types/sensor"
 
-// 🔹 Ambil data terbaru dari database
-export const getSensorHubs = async () => {
+const rooms = [
+
+  {
+    id: 1,
+    name: "Living Room"
+  },
+
+  {
+    id: 2,
+    name: "Bedroom 1"
+  },
+
+  {
+    id: 3,
+    name: "Bedroom 2"
+  },
+
+  {
+    id: 4,
+    name: "Kitchen"
+  }
+
+]
+
+// 🔹 Ambil latest sensor tiap room
+export const getSensorHubs = async (): Promise<SensorHub[]> => {
+
   try {
+
     const res = await fetch("/api/sensors")
+
     const data = await res.json()
 
     console.log("API RESPONSE:", data)
 
     if (!Array.isArray(data)) {
+
       console.error("DATA BUKAN ARRAY:", data)
+
       return []
+
     }
 
-    return data.map((item: any, index: number) => ({
-      id: `hub-${index}`,
-      name: `HUB-${index}`,
-      location: "Room Sensor",
-      sensorType: "DHT22",
-      temperature: item.temperature,
-      humidity: item.humidity,
-      light: item.light,
+    const latestPerRoom = rooms.map((room) => {
 
-      currentValue: `${item.temperature}°C / ${item.humidity}% RH`,
-      status: item.humidity > 70 ? "ALERT" as const : "ACTIVE" as const,
-      battery: 90,
-      lastSync: "Just Now"
-    }))
+      const roomData = data.filter(
+        (item: any) => item.room_id === room.id
+      )
+
+      const latest = roomData[0]
+
+      if (!latest) return null
+
+      return {
+
+        id: `hub-${room.id}`,
+
+        name: `HUB-${room.id}`,
+
+        location: room.name,
+
+        sensorType: "DHT22",
+
+        temperature: latest.temperature,
+
+        humidity: latest.humidity,
+
+        light: latest.light,
+
+        currentValue:
+          `${latest.temperature}°C / ${latest.humidity}% RH`,
+
+        status:
+          latest.humidity > 70
+            ? "ALERT" as const
+            : "ACTIVE" as const,
+
+        battery: 90,
+
+        lastSync: "Just Now"
+
+      }
+
+    }).filter(Boolean) as SensorHub[]
+
+    return latestPerRoom
+
   } catch (error) {
+
     console.error("Fetch API error:", error)
+
     return []
+
   }
 }
 
-// 🔹 Trend data untuk chart
-export const getTrendData = async (): Promise<MetricData[]> => {
+// 🔹 Trend data untuk chart berdasarkan room
+export const getTrendData = async (
+  roomId: number
+): Promise<MetricData[]> => {
+
   const { data, error } = await supabase
     .from('sensor_data')
     .select('*')
+    .eq('room_id', roomId)
     .order('created_at', { ascending: false })
     .limit(10)
 
   if (error) {
+
     console.error('Error fetching trend data:', error)
+
     return []
+
   }
 
   return data.map((item) => ({
+
     time: new Date(item.created_at).toLocaleTimeString([], {
+
       hour: '2-digit',
+
       minute: '2-digit',
+
       second: '2-digit'
+
     }),
+
     humidity: item.humidity,
+
     temperature: item.temperature,
+
     light: item.light
+
   }))
 }
 
-// 🔹 Refresh (ambil ulang data)
+// 🔹 Refresh data
 export const refreshSensorData = async (): Promise<SensorHub[]> => {
+
   return await getSensorHubs()
+
 }
 
-console.log("URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
+console.log(
+  "URL:",
+  process.env.NEXT_PUBLIC_SUPABASE_URL
+)
