@@ -8,37 +8,46 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
+    setError("")
 
     const res = await login(email, password)
 
     if (res.success) {
-      document.cookie = `token=${res.token}; path=/`
       router.push("/")
+      router.refresh()
     } else {
-      alert(res.message)
+      setError(res.message ?? "Login gagal")
     }
+
+    setLoading(false)
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100">
-
       <div className="w-[900px] md:w-[1000px] h-[420px] backdrop-blur-xl bg-white/80 rounded-2xl shadow-[0_20px_60px_rgba(99,102,241,0.25)] overflow-hidden grid grid-cols-2 animate-fadeIn">
 
         {/* LEFT */}
         <div className="p-10 flex flex-col justify-center">
           <h2 className="text-3xl font-bold mb-2">Hello!</h2>
-          <p className="text-gray-500 mb-6 text-sm">
-            Sign in to your account
-          </p>
+          <p className="text-gray-500 mb-6 text-sm">Sign in to your account</p>
+
+          {error && (
+            <div className="mb-4 px-4 py-2 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4">
-
             <input
               type="email"
               placeholder="Email"
+              required
               className="w-full p-3 rounded-lg bg-gray-100 outline-none focus:ring-2 focus:ring-indigo-400 transition"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -47,17 +56,19 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="Password"
+              required
               className="w-full p-3 rounded-lg bg-gray-100 outline-none focus:ring-2 focus:ring-indigo-400 transition"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
 
             <button
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg hover:scale-[1.02] hover:shadow-lg transition"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg hover:scale-[1.02] hover:shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Sign In
+              {loading ? "Signing in..." : "Sign In"}
             </button>
-
           </form>
         </div>
 
@@ -72,7 +83,6 @@ export default function LoginPage() {
               Monitor and control your environment easily
             </p>
           </div>
-
         </div>
 
       </div>

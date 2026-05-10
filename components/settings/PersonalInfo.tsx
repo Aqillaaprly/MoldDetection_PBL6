@@ -1,42 +1,69 @@
+type Props = {
+  name: string
+  setName: (v: string) => void
+  email: string
+  setEmail: (v: string) => void
+  avatar: string | null   // ← bisa null sekarang
+  initials: string        // ← prop baru
+  handleAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+}
+
 export default function PersonalInfo({
-  name, setName,
-  email, setEmail,
-  avatar, handleAvatarChange
-}: any) {
+  name, setName, email, setEmail, avatar, initials, handleAvatarChange
+}: Props) {
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-6">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+      <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-6">
+        Personal Information
+      </h2>
 
-      <h2 className="font-semibold text-lg">Personal Information</h2>
+      {/* AVATAR */}
+      <div className="flex items-center gap-4 mb-6">
+        {avatar ? (
+          <img
+            src={avatar}
+            alt="Avatar"
+            className="w-16 h-16 rounded-full object-cover border-2 border-indigo-100"
+          />
+        ) : (
+          // Avatar default — inisial nama dengan background gradient
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold select-none">
+            {initials}
+          </div>
+        )}
 
-      <div className="flex items-center gap-4">
-        <img src={avatar} className="w-14 h-14 rounded-full object-cover border" />
-
-        <label className="text-sm text-indigo-600 cursor-pointer">
+        <label className="cursor-pointer text-sm text-indigo-600 hover:text-indigo-500 font-medium">
           Change
-          <input type="file" onChange={handleAvatarChange} className="hidden" />
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
         </label>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <label className="text-sm text-gray-500">Name</label>
+      {/* FIELDS */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Name</label>
           <input
+            type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-4 py-2 text-sm"
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
         </div>
-
-        <div className="space-y-1">
-          <label className="text-sm text-gray-500">Email</label>
+        <div>
+          <label className="text-sm text-gray-500 dark:text-gray-400 mb-1 block">Email</label>
           <input
+            type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-4 py-2 text-sm"
+            disabled
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-400 cursor-not-allowed"
           />
         </div>
       </div>
-
     </div>
   )
 }
