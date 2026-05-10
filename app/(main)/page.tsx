@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { useSensorStore } from "@/store/useSensorStore"
-import { useNotificationStore } from "@/store/useNotificationStore" 
+import { useNotificationStore } from "@/store/useNotificationStore"
 import { useActivityStore } from "@/store/useActivityStore"
 
 import SensorCard from "@/components/dashboard/SensorCard"
@@ -16,53 +16,130 @@ import { getSensorHubs } from "@/services/sensorService"
 export default function Dashboard() {
 
   const addNotification = useNotificationStore(
-  (state) => state.addNotification
+    (state) => state.addNotification
   )
-  const previousHumidityRef = useRef(false)
 
-  const setSensorData = useSensorStore((state) => state.setSensorData)
+  const addActivity = useActivityStore(
+    (state) => state.addActivity
+  )
+
+  const setSensorData = useSensorStore(
+    (state) => state.setSensorData
+  )
+
+  const previousHumidityRef = useRef(false)
+  const previousTempRef = useRef(false)
+  const previousLightRef = useRef(false)
 
   useEffect(() => {
-  const fetchFromSupabase = async () => {
-    try {
-      // generate + insert data
-      await fetch("/api/sensors")
 
-      // ambil data terbaru
-      const data = await getSensorHubs()
+    const fetchFromSupabase = async () => {
 
-      console.log("DATA SUPABASE:", data)
+      try {
 
-      if (data.length > 0) {
-        setSensorData(data[0])
+        // generate + insert data
+        await fetch("/api/sensors")
+
+        // ambil data terbaru
+        const data = await getSensorHubs()
+
+        console.log("DATA SUPABASE:", data)
+
+        if (data.length > 0) {
+
+          setSensorData(data[0])
+
+          const humidity = data[0].humidity
+          const temperature = data[0].temperature
+          const light = data[0].light
+
+          // =========================
+          // HUMIDITY TRIGGER
+          // =========================
+          if (humidity > 80 && !previousHumidityRef.current) {
+
+            addActivity({
+              title: "High humidity detected",
+              description: `Humidity reached ${humidity}%`,
+              type: "alert"
+            })
+
+            addNotification({
+              title: "High Mold Risk",
+              message: `Humidity reached ${humidity}%`,
+              type: "alert"
+            })
+
+            previousHumidityRef.current = true
+          }
+
+          if (humidity <= 80) {
+            previousHumidityRef.current = false
+          }
+
+          // =========================
+          // TEMPERATURE TRIGGER
+          // =========================
+          if (temperature > 30 && !previousTempRef.current) {
+
+            addActivity({
+              title: "High temperature detected",
+              description: `Temperature reached ${temperature}°C`,
+              type: "alert"
+            })
+
+            addNotification({
+              title: "High Temperature",
+              message: `Temperature reached ${temperature}°C`,
+              type: "warning"
+            })
+
+            previousTempRef.current = true
+          }
+
+          if (temperature <= 30) {
+            previousTempRef.current = false
+          }
+
+          // =========================
+          // LIGHT TRIGGER
+          // =========================
+          if (light > 700 && !previousLightRef.current) {
+
+            addActivity({
+              title: "High light exposure",
+              description: `Lux intensity reached ${light}`,
+              type: "alert"
+            })
+
+            addNotification({
+              title: "High Light Exposure",
+              message: `Lux intensity reached ${light}`,
+              type: "warning"
+            })
+
+            previousLightRef.current = true
+          }
+
+          if (light <= 700) {
+            previousLightRef.current = false
+          }
+
+        }
+
+      } catch (error) {
+
+        console.error("ERROR FETCH SUPABASE:", error)
+
       }
-
-      const humidity = data[0].humidity
-
-      if (humidity > 80 && !previousHumidityRef.current) {
-
-        addNotification({
-          title: "High Mold Risk",
-          message: `Humidity reached ${humidity}%`,
-          type: "alert"
-        })
-
-        previousHumidityRef.current = true
-      }
-
-      if (humidity <= 80) {
-        previousHumidityRef.current = false
-      }
-    } catch (error) {
-      console.error("ERROR FETCH SUPABASE:", error)
     }
-  }
 
-  fetchFromSupabase()
+    fetchFromSupabase()
 
-  const interval = setInterval(fetchFromSupabase, 5000)
+    const interval = setInterval(fetchFromSupabase, 5000)
 
-  return () => clearInterval(interval)
+    return () => clearInterval(interval)
+
   }, [])
 
   return (
@@ -96,7 +173,7 @@ export default function Dashboard() {
         </select>
 
       </div>
-      
+
       <SensorCard />
 
       <div className="grid lg:grid-cols-3 gap-6">
