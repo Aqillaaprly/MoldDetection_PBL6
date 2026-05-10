@@ -5,6 +5,7 @@ import {
   FileText
 } from "lucide-react"
 
+import Link from "next/link"
 import { useActivityStore } from "@/store/useActivityStore"
 
 export default function ActivityTimeline() {
@@ -104,9 +105,11 @@ export default function ActivityTimeline() {
       </div>
 
       {activities.length > 4 && (
-        <button className="mt-6 w-full border rounded-xl py-2 text-sm text-gray-600 hover:bg-gray-50">
+        <Link
+          href="/logs"
+          className="block text-center mt-6 text-sm text-indigo-600 hover:text-indigo-500 font-medium">
           View Complete Logs
-        </button>
+        </Link>
       )}
 
     </div>
