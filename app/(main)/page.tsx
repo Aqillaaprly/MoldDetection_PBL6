@@ -62,12 +62,20 @@ export default function Dashboard() {
 
         if (data.length > 0) {
 
-          setSensorData(data[0])
+          const currentRoomData = data.find(
+            (item) => item.location === selectedRoom
+          )
 
-          const humidity = data[0].humidity
-          const temperature = data[0].temperature
-          const light = data[0].light
+          if (!currentRoomData) return
 
+          setSensorData(currentRoomData)
+
+          const humidity = currentRoomData.humidity
+
+          const temperature = currentRoomData.temperature
+
+          const light = currentRoomData.light
+          
           // HUMIDITY TRIGGER
           if (humidity > 80 && !previousHumidityRef.current) {
 
