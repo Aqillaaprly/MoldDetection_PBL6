@@ -5,6 +5,9 @@ import PersonalInfo from "@/components/settings/PersonalInfo"
 import ChangePassword from "@/components/settings/ChangePassword"
 import ConnectedAccounts from "@/components/settings/ConnectedAccounts"
 import DeviceList from "@/components/settings/DeviceList"
+import type { Device } from "@/components/settings/DeviceList"
+import type { ConnectedAccount } from "@/components/settings/ConnectedAccounts"
+
 
 import {
   getProfile,
@@ -31,8 +34,8 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
-  const [connectedAccounts, setConnectedAccounts] = useState<any[]>([])
-  const [devices, setDevices] = useState<any[]>([])
+  const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([])
+  const [devices, setDevices] = useState<Device[]>([])
 
   useEffect(() => {
     // Load profile

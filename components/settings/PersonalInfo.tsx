@@ -3,8 +3,8 @@ type Props = {
   setName: (v: string) => void
   email: string
   setEmail: (v: string) => void
-  avatar: string | null   // ← bisa null sekarang
-  initials: string        // ← prop baru
+  avatar: string | null
+  initials: string
   handleAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 

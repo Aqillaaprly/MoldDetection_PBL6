@@ -12,7 +12,17 @@ const providerLabel: Record<string, string> = {
   email: "Email",
 }
 
-export default function ConnectedAccounts({ connectedAccounts }: any) {
+export interface ConnectedAccount {
+  id: string
+  provider: string
+  email: string
+}
+
+export interface ConnectedAccountsProps {
+  connectedAccounts: ConnectedAccount[]
+}
+
+export default function ConnectedAccounts({ connectedAccounts }: ConnectedAccountsProps) {
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-4">
       <h2 className="font-semibold text-lg text-slate-800 dark:text-white">
@@ -22,7 +32,7 @@ export default function ConnectedAccounts({ connectedAccounts }: any) {
       {connectedAccounts.length === 0 ? (
         <p className="text-sm text-gray-400">No connected accounts.</p>
       ) : (
-        connectedAccounts.map((acc: any) => (
+        connectedAccounts.map((acc: ConnectedAccount) => (
           <div
             key={acc.id}
             className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 last:border-none pb-3 last:pb-0"
