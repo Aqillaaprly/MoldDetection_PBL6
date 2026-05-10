@@ -1,37 +1,52 @@
-import { AlertTriangle, CheckCircle, User, FileText } from "lucide-react"
+import {
+  AlertTriangle,
+  CheckCircle,
+  User,
+  FileText
+} from "lucide-react"
+
+import Link from "next/link"
+import { useActivityStore } from "@/store/useActivityStore"
 
 export default function ActivityTimeline() {
 
-  const logs = [
-    {
-      icon: <AlertTriangle size={16} />,
-      title: "High humidity detected",
-      desc: "Sensor Zone A-14 tripped threshold",
-      time: "12:05 PM",
-      color: "red"
-    },
-    {
-      icon: <CheckCircle size={16} />,
-      title: "Exhaust fan activated",
-      desc: "Automated protocol: MOISTURE_CLEAR",
-      time: "12:06 PM",
-      color: "green"
-    },
-    {
-      icon: <User size={16} />,
-      title: "Manual Override: HVAC",
-      desc: "Dr. Thorne adjusted temp target to 29°C",
-      time: "11:42 AM",
-      color: "blue"
-    },
-    {
-      icon: <FileText size={16} />,
-      title: "Daily Report Compiled",
-      desc: "View summary in Analytics tab",
-      time: "08:00 AM",
-      color: "gray"
-    },
-  ]
+  const { activities } = useActivityStore()
+
+  const getActivityIcon = (type: string) => {
+
+    switch (type) {
+
+      case "alert":
+        return {
+          icon: <AlertTriangle size={16} />,
+          color: "red"
+        }
+
+      case "success":
+        return {
+          icon: <CheckCircle size={16} />,
+          color: "green"
+        }
+
+      case "manual":
+        return {
+          icon: <User size={16} />,
+          color: "blue"
+        }
+
+      case "report":
+        return {
+          icon: <FileText size={16} />,
+          color: "gray"
+        }
+
+      default:
+        return {
+          icon: <FileText size={16} />,
+          color: "gray"
+        }
+    }
+  }
 
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
@@ -42,48 +57,59 @@ export default function ActivityTimeline() {
 
       <div className="space-y-6">
 
-        {logs.slice(0,6).map((log, i) => (
-          <div key={i} className="flex gap-4 items-start">
+        {activities.slice(0, 4).map((activity) => {
 
-            <div className={`
-              w-8 h-8 flex items-center justify-center rounded-full
-              ${log.color === "red" && "bg-red-100 text-red-600"}
-              ${log.color === "green" && "bg-green-100 text-green-600"}
-              ${log.color === "blue" && "bg-indigo-100 text-indigo-600"}
-              ${log.color === "gray" && "bg-gray-200 text-gray-500"}
-            `}>
-              {log.icon}
-            </div>
+          const activityData = getActivityIcon(activity.type)
 
-            <div className="flex-1">
+          return (
+            <div
+              key={activity.id}
+              className="flex gap-4 items-start"
+            >
 
-              <div className="flex justify-between">
+              <div className={`
+                w-8 h-8 flex items-center justify-center rounded-full
 
-                <p className="font-medium text-sm">
-                  {log.title}
+                ${activityData.color === "red" && "bg-red-100 text-red-600"}
+                ${activityData.color === "green" && "bg-green-100 text-green-600"}
+                ${activityData.color === "blue" && "bg-indigo-100 text-indigo-600"}
+                ${activityData.color === "gray" && "bg-gray-200 text-gray-500"}
+              `}>
+                {activityData.icon}
+              </div>
+
+              <div className="flex-1">
+
+                <div className="flex justify-between">
+
+                  <p className="font-medium text-sm">
+                    {activity.title}
+                  </p>
+
+                  <span className="text-xs text-gray-400">
+                    {new Date(activity.createdAt).toLocaleTimeString()}
+                  </span>
+
+                </div>
+
+                <p className="text-xs text-gray-400 mt-1">
+                  {activity.description}
                 </p>
-
-                <span className="text-xs text-gray-400">
-                  {log.time}
-                </span>
 
               </div>
 
-              <p className="text-xs text-gray-400 mt-1">
-                {log.desc}
-              </p>
-
             </div>
-
-          </div>
-        ))}
+          )
+        })}
 
       </div>
 
-      {logs.length > 7 && (
-        <button className="mt-6 w-full border rounded-xl py-2 text-sm text-gray-600 hover:bg-gray-50">
+      {activities.length > 4 && (
+        <Link
+          href="/logs"
+          className="block text-center mt-6 text-sm text-indigo-600 hover:text-indigo-500 font-medium">
           View Complete Logs
-        </button>
+        </Link>
       )}
 
     </div>

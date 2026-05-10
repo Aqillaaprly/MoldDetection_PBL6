@@ -1,223 +1,394 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Wind, Fan, Clock, Activity } from "lucide-react";
+import { useState } from "react"
+import { Pencil, Trash2 } from "lucide-react"
+
+import DeviceCard from "@/components/devices/DeviceCard"
+import AutomationPanel from "@/components/devices/AutomationPanel"
+import DeviceEvents from "@/components/devices/DeviceEvents"
+import ZoneCalibration from "@/components/devices/ZoneCalibration"
+
+interface DeviceState {
+  enabled: boolean
+  isOn: boolean
+  connectivity: "online" | "offline"
+}
+
+interface Room {
+  name: string
+  dehumidifier: DeviceState
+  exhaust: DeviceState
+}
 
 export default function DevicePage() {
-  const [airPurifierOn, setAirPurifierOn] = useState(false);
-  const [exhaustOn, setExhaustOn] = useState(true);
-  const [automation, setAutomation] = useState(true);
 
-  const statusStyle = (isOn: boolean) =>
-    isOn
-      ? "bg-green-400 text-green-900"
-      : "bg-red-100 text-red-500";
+  const [rooms, setRooms] = useState<Room[]>([
+    {
+      name: "Living Room",
+      dehumidifier: {
+        enabled: true,
+        isOn: false,
+        connectivity: "online"
+      },
+      exhaust: {
+        enabled: true,
+        isOn: true,
+        connectivity: "offline"
+      }
+    },
+    {
+      name: "Bedroom 1",
+      dehumidifier: {
+        enabled: true,
+        isOn: true,
+        connectivity: "online"
+      },
+      exhaust: {
+        enabled: false,
+        isOn: false,
+        connectivity: "offline"
+      }
+    }
+  ])
+
+  const [showAdd, setShowAdd] = useState(false)
+
+  const [newRoom, setNewRoom] = useState("")
+  const [newDehumidifier, setNewDehumidifier] = useState(false)
+  const [newExhaust, setNewExhaust] = useState(false)
+
+  const [showEdit, setShowEdit] = useState(false)
+  const [editIndex, setEditIndex] = useState<number | null>(null)
+
+  const [editRoomName, setEditRoomName] = useState("")
+  const [editDehumidifier, setEditDehumidifier] = useState(false)
+  const [editExhaust, setEditExhaust] = useState(false)
+
+  // TOGGLE DEVICE
+  const toggleDevice = (index: number, type: "dehumidifier" | "exhaust") => {
+
+    const updated = [...rooms]
+
+    updated[index][type].isOn = !updated[index][type].isOn
+
+    setRooms(updated)
+  }
+
+  // ADD DEVICE
+  const addDevice = () => {
+
+    if (!newRoom.trim()) return
+
+    setRooms([
+      ...rooms,
+      {
+        name: newRoom,
+        dehumidifier: {
+          enabled: newDehumidifier,
+          isOn: false,
+          connectivity: "offline"
+        },
+        exhaust: {
+          enabled: newExhaust,
+          isOn: false,
+          connectivity: "offline"
+        }
+      }
+    ])
+
+    setNewRoom("")
+    setNewDehumidifier(false)
+    setNewExhaust(false)
+    setShowAdd(false)
+  }
+
+  // OPEN EDIT MODAL
+  const editRoom = (index: number) => {
+
+    const room = rooms[index]
+
+    setEditIndex(index)
+    setEditRoomName(room.name)
+
+    setEditDehumidifier(room.dehumidifier.enabled)
+    setEditExhaust(room.exhaust.enabled)
+
+    setShowEdit(true)
+  }
+
+  // SAVE EDIT
+  const saveEdit = () => {
+
+    if (editIndex === null) return
+
+    const updated = [...rooms]
+
+    updated[editIndex] = {
+      name: editRoomName,
+      dehumidifier: {
+        enabled: editDehumidifier,
+        isOn: updated[editIndex].dehumidifier.isOn,
+        connectivity: updated[editIndex].dehumidifier.connectivity
+      },
+      exhaust: {
+        enabled: editExhaust,
+        isOn: updated[editIndex].exhaust.isOn,
+        connectivity: updated[editIndex].exhaust.connectivity
+      }
+    }
+
+    setRooms(updated)
+    setShowEdit(false)
+  }
+
+  // DELETE ROOM
+  const deleteRoom = (index: number) => {
+
+    const confirmDelete = confirm("Delete this device setup?")
+
+    if (!confirmDelete) return
+
+    const updated = rooms.filter((_, i) => i !== index)
+
+    setRooms(updated)
+  }
 
   return (
-    <div className="min-h-screen bg-[#F6F8FC]">
-      <main className="max-w-7xl mx-auto px-6 py-10">
+    <div className="space-y-6">
 
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-10">
-          <h1 className="text-3xl font-bold text-slate-800">
-            Device Management
-          </h1>
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
 
-          <div className="relative">
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
+          Device Management
+        </h1>
+
+        <button
+          onClick={() => setShowAdd(true)}
+          className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 transition"
+        >
+          + Add Device
+        </button>
+
+      </div>
+
+      <div className="grid grid-cols-12 gap-6">
+
+        {/* LEFT SIDE */}
+        <div className="col-span-12 lg:col-span-8 space-y-6">
+
+          <div className="grid md:grid-cols-2 gap-6">
+
+            {rooms.map((room, i) => (
+
+              <div
+                key={i}
+                className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 space-y-6"
+              >
+
+                {/* ROOM HEADER */}
+                <div className="flex justify-between items-center">
+
+                  <h3 className="font-semibold text-lg text-gray-800 dark:text-white">
+                    {room.name}
+                  </h3>
+
+                  <div className="flex gap-3">
+
+                    <button
+                      onClick={() => editRoom(i)}
+                      className="text-gray-400 hover:text-indigo-500 transition"
+                    >
+                      <Pencil size={16}/>
+                    </button>
+
+                    <button
+                      onClick={() => deleteRoom(i)}
+                      className="text-gray-400 hover:text-red-500 transition"
+                    >
+                      <Trash2 size={16}/>
+                    </button>
+
+                  </div>
+
+                </div>
+
+                {/* DEVICES */}
+                <div className="grid grid-cols-2 gap-4">
+
+                  {room.dehumidifier.enabled && (
+                    <DeviceCard
+                      name="Dehumidifier"
+                      location={room.name}
+                      isOn={room.dehumidifier.isOn}
+                      connectivity={room.dehumidifier.connectivity}
+                      toggle={() => toggleDevice(i, "dehumidifier")}
+                      type="purifier"
+                    />
+                  )}
+
+                  {room.exhaust.enabled && (
+                    <DeviceCard
+                      name="Exhaust Fan"
+                      location={room.name}
+                      isOn={room.exhaust.isOn}
+                      connectivity={room.exhaust.connectivity}
+                      toggle={() => toggleDevice(i, "exhaust")}
+                      type="exhaust"
+                    />
+                  )}
+
+                </div>
+
+              </div>
+
+            ))}
+
+          </div>
+
+          <ZoneCalibration />
+
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+
+          <AutomationPanel />
+          <DeviceEvents />
+
+        </div>
+
+      </div>
+
+      {/* ADD DEVICE MODAL */}
+      {showAdd && (
+
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+          <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-800">
+
+            <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+              Add Device
+            </h2>
+
             <input
               type="text"
-              placeholder="Search..."
-              className="pl-10 pr-4 py-2.5 rounded-full bg-white border border-slate-200 text-sm shadow-sm"
+              placeholder="Room name"
+              value={newRoom}
+              onChange={(e) => setNewRoom(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-4 py-2 text-sm"
             />
-            <span className="absolute left-3 top-2.5 text-slate-400">🔍</span>
+
+            <div className="mt-4 space-y-2 text-sm">
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={newDehumidifier}
+                  onChange={(e) => setNewDehumidifier(e.target.checked)}
+                />
+                Dehumidifier
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={newExhaust}
+                  onChange={(e) => setNewExhaust(e.target.checked)}
+                />
+                Exhaust Fan
+              </label>
+
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+
+              <button
+                onClick={() => setShowAdd(false)}
+                className="px-4 py-2 text-sm rounded-xl bg-gray-100 dark:bg-gray-800"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={addDevice}
+                className="px-4 py-2 text-sm rounded-xl bg-indigo-600 text-white"
+              >
+                Add
+              </button>
+
+            </div>
+
           </div>
+
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
+      )}
 
-          {/* LEFT */}
-          <div className="col-span-12 lg:col-span-8 space-y-6">
+      {/* EDIT DEVICE MODAL */}
+      {showEdit && (
 
-            <div className="grid md:grid-cols-2 gap-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
 
-              {/* AIR PURIFIER */}
-              <div
-                className={`rounded-3xl p-7 h-[280px] flex flex-col justify-between shadow-sm transition ${
-                  airPurifierOn
-                    ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white"
-                    : "bg-white"
-                }`}
+          <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-800">
+
+            <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
+              Edit Device
+            </h2>
+
+            <input
+              type="text"
+              value={editRoomName}
+              onChange={(e) => setEditRoomName(e.target.value)}
+              className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-4 py-2 text-sm"
+            />
+
+            <div className="mt-4 space-y-2 text-sm">
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={editDehumidifier}
+                  onChange={(e) => setEditDehumidifier(e.target.checked)}
+                />
+                Dehumidifier
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={editExhaust}
+                  onChange={(e) => setEditExhaust(e.target.checked)}
+                />
+                Exhaust Fan
+              </label>
+
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+
+              <button
+                onClick={() => setShowEdit(false)}
+                className="px-4 py-2 text-sm rounded-xl bg-gray-100 dark:bg-gray-800"
               >
-                <div>
-                  <div className="flex justify-between mb-6">
-                    <div
-                      className={`p-3 rounded-xl ${
-                        airPurifierOn ? "bg-white/20" : "bg-slate-50"
-                      }`}
-                    >
-                      <Wind />
-                    </div>
+                Cancel
+              </button>
 
-                    <span className={`text-xs px-3 py-1 rounded-md ${statusStyle(airPurifierOn)}`}>
-                      {airPurifierOn ? "ON" : "OFF"}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-semibold">
-                    Main Air Purifier
-                  </h3>
-
-                  <p className={`text-sm ${airPurifierOn ? "text-white/70" : "text-slate-400"}`}>
-                    Primary Living Suite
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setAirPurifierOn(!airPurifierOn)}
-                  className={`w-full py-3 rounded-xl font-semibold ${
-                    airPurifierOn
-                      ? "bg-white text-indigo-600"
-                      : "bg-indigo-500 text-white"
-                  }`}
-                >
-                  {airPurifierOn ? "Turn OFF" : "Turn ON"}
-                </button>
-              </div>
-
-              {/* EXHAUST */}
-              <div
-                className={`rounded-3xl p-7 h-[280px] flex flex-col justify-between shadow-sm transition ${
-                  exhaustOn
-                    ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white"
-                    : "bg-white"
-                }`}
+              <button
+                onClick={saveEdit}
+                className="px-4 py-2 text-sm rounded-xl bg-indigo-600 text-white"
               >
-                <div>
-                  <div className="flex justify-between mb-6">
-                    <div
-                      className={`p-3 rounded-xl ${
-                        exhaustOn ? "bg-white/20" : "bg-slate-50"
-                      }`}
-                    >
-                      <Fan />
-                    </div>
+                Save
+              </button>
 
-                    {/* 🔥 FIX DI SINI */}
-                    <span className={`text-xs px-3 py-1 rounded-md ${statusStyle(exhaustOn)}`}>
-                      {exhaustOn ? "ON" : "OFF"}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-semibold">
-                    Basement Exhaust
-                  </h3>
-
-                  <p className={`text-sm ${exhaustOn ? "text-white/70" : "text-slate-400"}`}>
-                    Utility Zone 02
-                  </p>
-
-                  <p className="mt-2">
-                    RPM: {exhaustOn ? "1,240" : "0"}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setExhaustOn(!exhaustOn)}
-                  className={`w-full py-3 rounded-xl font-semibold ${
-                    exhaustOn
-                      ? "bg-white text-indigo-600"
-                      : "bg-indigo-500 text-white"
-                  }`}
-                >
-                  {exhaustOn ? "Turn OFF" : "Turn ON"}
-                </button>
-              </div>
-            </div>
-
-            {/* ZONE */}
-            <div className="bg-white rounded-3xl p-7 shadow-sm">
-              <h3 className="text-lg font-semibold mb-3">
-                Zone Calibration
-              </h3>
-
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Fine-tune the moisture extraction parameters for the{" "}
-                <span className="text-indigo-600 font-semibold">
-                  East Laboratory Wing.
-                </span>{" "}
-                This overrides global automation presets for 24 hours.
-              </p>
-            </div>
-          </div>
-
-          {/* RIGHT */}
-          <div className="col-span-12 lg:col-span-4 space-y-6">
-
-            {/* AUTOMATION */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <span className="font-semibold">Automation Mode</span>
-
-                <div
-                  onClick={() => setAutomation(!automation)}
-                  className={`w-12 h-6 rounded-full flex items-center px-1 cursor-pointer ${
-                    automation ? "bg-indigo-500" : "bg-gray-300"
-                  }`}
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full bg-white ${
-                      automation ? "ml-auto" : ""
-                    }`}
-                  />
-                </div>
-              </div>
-
-              <p className="text-sm mb-2">Humidity Threshold</p>
-
-              <div className="w-full h-2 bg-gray-200 rounded-full">
-                <div className="w-[70%] h-full bg-indigo-500 rounded-full" />
-              </div>
-
-              <p className="text-right mt-1">70%</p>
-            </div>
-
-            {/* EVENTS */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm">
-              <div className="flex justify-between mb-5">
-                <h4 className="font-semibold">Recent Device Events</h4>
-                <Clock size={16} />
-              </div>
-
-              <div className="space-y-5 text-sm">
-                <div className="flex gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2" />
-                  <div>
-                    <p className="font-semibold">Exhaust Fan Started</p>
-                    <p className="opacity-70">Today, 08:42 AM • Auto Mode</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="w-2 h-2 bg-indigo-500 rounded-full mt-2" />
-                  <div>
-                    <p className="font-semibold">Firmware Updated</p>
-                    <p className="opacity-70">Yesterday • v4.2.0</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2" />
-                  <div>
-                    <p className="font-semibold">Sensor Offline</p>
-                    <p className="opacity-70">2 days ago • Kitchen Hub</p>
-                  </div>
-                </div>
-              </div>
             </div>
 
           </div>
+
         </div>
-      </main>
+
+      )}
+
     </div>
-  );
+  )
 }

@@ -1,21 +1,40 @@
 import { create } from "zustand"
 
+interface SensorData {
+  humidity: number
+  temperature: number
+  light: number
+}
+
 interface SensorState {
   humidity: number
   temperature: number
   light: number
-  updateSensors: () => void
+
+  previousHumidity: number
+  previousTemperature: number
+  previousLight: number
+
+  setSensorData: (data: SensorData) => void
 }
 
-export const useSensorStore = create<SensorState>((set) => ({
-  humidity: 78,
-  temperature: 29,
-  light: 65,
+export const useSensorStore = create<SensorState>((set, get) => ({
+  humidity: 0,
+  temperature: 0,
+  light: 0,
 
-  updateSensors: () =>
-    set(() => ({
-      humidity: Math.floor(Math.random() * 20) + 60,
-      temperature: Math.floor(Math.random() * 5) + 26,
-      light: Math.floor(Math.random() * 40) + 40
-    }))
+  previousHumidity: 0,
+  previousTemperature: 0,
+  previousLight: 0,
+
+  setSensorData: (data) =>
+    set({
+      previousHumidity: get().humidity,
+      previousTemperature: get().temperature,
+      previousLight: get().light,
+
+      humidity: data.humidity,
+      temperature: data.temperature,
+      light: data.light,
+    }),
 }))

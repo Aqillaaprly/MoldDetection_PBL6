@@ -1,39 +1,67 @@
 "use client"
+
 import { useSensorStore } from "@/store/useSensorStore"
 import { Droplet, Thermometer, Sun } from "lucide-react"
 import clsx from "clsx"
 
+interface CardProps {
+  title: string
+  value: string
+  icon: React.ReactNode
+  status: string
+  color: "red" | "green" | "gray"
+  change: string
+}
+
 export default function SensorCard() {
-  const { humidity, temperature, light } = useSensorStore()
+
+  const {
+
+    humidity,
+    temperature,
+    light,
+
+    previousHumidity,
+    previousTemperature,
+    previousLight
+
+  } = useSensorStore()
+
+  const humidityChange = humidity - previousHumidity
+  const temperatureChange = temperature - previousTemperature
+  const lightChange = light - previousLight
 
   return (
+
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
       <Card
         title="HUMIDITY"
         value={`${humidity}%`}
         icon={<Droplet size={18} />}
-        status="HIGH"
-        color="red"
-        change="-12%"
+        status={humidity > 80 ? "HIGH" : "NORMAL"}
+        color={humidity > 80 ? "red" : "green"}
+        change={`${humidityChange > 0 ? "+" : ""}${humidityChange}%`}
       />
 
       <Card
         title="TEMPERATURE"
         value={`${temperature}°C`}
         icon={<Thermometer size={18} />}
-        status="NORMAL"
-        color="green"
-        change="+0.2"
+        status={temperature > 30 ? "HOT" : "NORMAL"}
+        color={temperature > 30 ? "red" : "green"}
+        change={`${temperatureChange > 0 ? "+" : ""}${temperatureChange.toFixed(1)}`}
       />
 
       <Card
         title="LIGHT INTENSITY"
         value={`${light} lux`}
         icon={<Sun size={18} />}
-        status="LOW"
-        color="gray"
-        change="-5%"
+        status={light > 700 ? "HIGH" : "NORMAL"}
+        color={light > 700 ? "red" : "gray"}
+        change={`${lightChange > 0 ? "+" : ""}${lightChange}`}
       />
+
     </div>
   )
 }
@@ -45,8 +73,10 @@ function Card({
   status,
   color,
   change
-}: any) {
+}: CardProps) {
+
   return (
+
     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
 
       {/* Top */}
@@ -61,9 +91,15 @@ function Card({
         <span
           className={clsx(
             "text-xs px-3 py-1 rounded-full font-medium",
-            color === "red" && "bg-red-100 text-red-600",
-            color === "green" && "bg-green-100 text-green-600",
-            color === "gray" && "bg-gray-200 text-gray-600"
+
+            color === "red" &&
+              "bg-red-100 text-red-600",
+
+            color === "green" &&
+              "bg-green-100 text-green-600",
+
+            color === "gray" &&
+              "bg-gray-200 text-gray-600"
           )}
         >
           {status}
@@ -86,9 +122,15 @@ function Card({
         <span
           className={clsx(
             "text-sm font-medium",
-            color === "red" && "text-red-500",
-            color === "green" && "text-green-500",
-            color === "gray" && "text-gray-400"
+
+            color === "red" &&
+              "text-red-500",
+
+            color === "green" &&
+              "text-green-500",
+
+            color === "gray" &&
+              "text-gray-400"
           )}
         >
           {change}
