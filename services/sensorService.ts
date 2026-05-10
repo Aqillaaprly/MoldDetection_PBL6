@@ -1,6 +1,14 @@
 import { supabase } from '@/lib/supabase'
 import { SensorHub, MetricData } from "@/types/sensor"
 
+interface SensorRow {
+  room_id: number
+  temperature: number
+  humidity: number
+  light: number
+  created_at: string
+}
+
 const rooms = [
 
   {
@@ -46,8 +54,8 @@ export const getSensorHubs = async (): Promise<SensorHub[]> => {
 
     const latestPerRoom = rooms.map((room) => {
 
-      const roomData = data.filter(
-        (item: any) => item.room_id === room.id
+      const roomData = (data as SensorRow[]).filter(
+        (item) => item.room_id === room.id
       )
 
       const latest = roomData[0]

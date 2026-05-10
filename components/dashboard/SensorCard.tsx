@@ -4,6 +4,15 @@ import { useSensorStore } from "@/store/useSensorStore"
 import { Droplet, Thermometer, Sun } from "lucide-react"
 import clsx from "clsx"
 
+interface CardProps {
+  title: string
+  value: string
+  icon: React.ReactNode
+  status: string
+  color: "red" | "green" | "gray"
+  change: string
+}
+
 export default function SensorCard() {
 
   const {
@@ -64,7 +73,7 @@ function Card({
   status,
   color,
   change
-}: any) {
+}: CardProps) {
 
   return (
 
