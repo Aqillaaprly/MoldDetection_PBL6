@@ -29,7 +29,7 @@ export async function GET() {
   else if (latest.light < 300) score += 10
 
   // DURATION
-  let highHumidityCount = data.filter(d => d.humidity > 70).length
+  const highHumidityCount = data.filter(d => d.humidity > 70).length
 
   if (highHumidityCount > 10) score += 30
   else if (highHumidityCount > 5) score += 20

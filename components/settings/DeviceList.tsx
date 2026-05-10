@@ -1,5 +1,17 @@
 import { Laptop, Smartphone } from "lucide-react"
 
+export interface Device {
+  id: string
+  name: string
+  type: "laptop" | "smartphone" | string
+  last_used: string
+}
+
+export interface DeviceListProps {
+  devices: Device[]
+  onRemove: (id: string) => void
+}
+
 function timeAgo(date: string) {
   const diff = Date.now() - new Date(date).getTime()
   const mins = Math.floor(diff / 60000)
@@ -12,7 +24,7 @@ function timeAgo(date: string) {
   return "Just now"
 }
 
-export default function DeviceList({ devices, onRemove }: any) {
+export default function DeviceList({ devices, onRemove }: DeviceListProps) {
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-4">
       <h2 className="font-semibold text-lg text-slate-800 dark:text-white">Devices</h2>
@@ -20,7 +32,7 @@ export default function DeviceList({ devices, onRemove }: any) {
       {devices.length === 0 ? (
         <p className="text-sm text-gray-400">No devices found.</p>
       ) : (
-        devices.map((device: any) => (
+        devices.map((device: Device) => (
           <div
             key={device.id}
             className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 last:border-none pb-3 last:pb-0"

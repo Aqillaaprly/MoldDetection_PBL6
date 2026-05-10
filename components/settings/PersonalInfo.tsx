@@ -3,8 +3,8 @@ type Props = {
   setName: (v: string) => void
   email: string
   setEmail: (v: string) => void
-  avatar: string | null   // ← bisa null sekarang
-  initials: string        // ← prop baru
+  avatar: string | null
+  initials: string
   handleAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
@@ -12,7 +12,7 @@ export default function PersonalInfo({
   name, setName, email, setEmail, avatar, initials, handleAvatarChange
 }: Props) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
       <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-6">
         Personal Information
       </h2>

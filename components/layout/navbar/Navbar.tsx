@@ -10,7 +10,7 @@ import { logout } from "@/lib/auth"
 import { useProfileStore } from "@/store/useProfileStore"
 
 export default function Navbar() {
-  const { toggleSidebar, toggleMobile } = useSidebar()
+  const { toggleSidebar } = useSidebar()
   const router = useRouter()
 
   const { avatar, name, initials, setProfile } = useProfileStore()
@@ -32,8 +32,7 @@ export default function Navbar() {
   }, [])
 
   const handleMenu = () => {
-    if (window.innerWidth < 768) toggleMobile()
-    else toggleSidebar()
+    toggleSidebar()
   }
 
   /* THEME INIT */
@@ -94,11 +93,11 @@ export default function Navbar() {
     <header className="h-16 flex items-center justify-between px-6 bg-white dark:bg-gray-900 shadow-md relative z-10">
 
       {/* MENU BUTTON */}
-      <button onClick={handleMenu}>
+      <button onClick={handleMenu} className="hidden md:flex items-center justify-center">
         <Menu size={20} />
       </button>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 ml-auto">
 
         {/* NOTIFICATION */}
         <div className="relative" ref={notifRef}>
