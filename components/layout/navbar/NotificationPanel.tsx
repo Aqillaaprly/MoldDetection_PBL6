@@ -64,7 +64,9 @@ export default function NotificationPanel() {
       {/* LIST */}
       <div className="max-h-80 overflow-y-auto">
 
-        {notifications.map((n) => (
+        {notifications 
+        .filter((n) => !n.read)
+        .map((n) => (
           <NotificationItem
             key={n.id}
             icon={getNotificationIcon(n.type)}

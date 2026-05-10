@@ -10,9 +10,37 @@ export default function NotificationsPage() {
     clearNotifications
   } = useNotificationStore()
 
-  const today = notifications.slice(0, 5)
-  const earlier = notifications.slice(5)
+  const today = notifications.filter(
+  (n) => {
 
+    const notifDate =
+      new Date(n.createdAt)
+
+    const now = new Date()
+
+    return (
+      notifDate.toDateString() ===
+      now.toDateString()
+    )
+
+  }
+)
+
+  const earlier = notifications.filter(
+    (n) => {
+
+      const notifDate =
+        new Date(n.createdAt)
+
+      const now = new Date()
+
+      return (
+        notifDate.toDateString() !==
+        now.toDateString()
+      )
+
+    }
+)
   const getNotificationIcon = (type: string) => {
 
     switch (type) {
@@ -46,13 +74,6 @@ export default function NotificationsPage() {
             System alerts and device activity
           </p>
         </div>
-
-        <button
-          onClick={clearNotifications}
-          className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
-        >
-          Clear all
-        </button>
 
       </div>
 

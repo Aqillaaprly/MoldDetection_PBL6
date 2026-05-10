@@ -1,55 +1,108 @@
 import { create } from "zustand"
 
 export interface NotificationItem {
+
   id: string
+
   title: string
+
   message: string
-  type: "alert" | "warning" | "automation" | "info"
+
+  type:
+    | "alert"
+    | "warning"
+    | "automation"
+    | "info"
+
   createdAt: Date
+
   read: boolean
+
 }
 
 interface NotificationState {
+
   notifications: NotificationItem[]
 
   addNotification: (
-    notification: Omit<NotificationItem, "id" | "createdAt" | "read">
+    notification: Omit<
+      NotificationItem,
+      "id" | "createdAt" | "read"
+    >
   ) => void
 
-  markAsRead: (id: string) => void
+  markAsRead: (
+    id: string
+  ) => void
 
   clearNotifications: () => void
+
 }
 
-export const useNotificationStore = create<NotificationState>((set) => ({
+export const useNotificationStore =
+  create<NotificationState>((set) => ({
 
-  notifications: [],
+    notifications: [],
 
-  addNotification: (notification) =>
-    set((state) => ({
-      notifications: [
-        {
-          id: crypto.randomUUID(),
-          createdAt: new Date(),
-          read: false,
-          ...notification
-        },
-        ...state.notifications
-      ]
-    })),
+    addNotification: (
+      notification
+    ) =>
 
-  markAsRead: (id) =>
-    set((state) => ({
-      notifications: state.notifications.map((notif) =>
-        notif.id === id
-          ? { ...notif, read: true }
-          : notif
-      )
-    })),
+      set((state) => ({
 
-  clearNotifications: () =>
-    set({
-      notifications: []
-    })
+        notifications: [
 
-}))
+          {
+
+            id: crypto.randomUUID(),
+
+            createdAt: new Date(),
+
+            read: false,
+
+            ...notification
+
+          },
+
+          ...state.notifications
+
+        ]
+
+      })),
+
+    markAsRead: (id) =>
+
+      set((state) => ({
+
+        notifications:
+          state.notifications.map(
+            (notif) =>
+
+              notif.id === id
+                ? {
+                    ...notif,
+                    read: true
+                  }
+                : notif
+          )
+
+      })),
+
+    clearNotifications: () =>
+
+      set((state) => ({
+
+        notifications:
+          state.notifications.map(
+            (notif) => ({
+
+              ...notif,
+
+              read: true
+
+            })
+          )
+
+      }))
+
+  }))
