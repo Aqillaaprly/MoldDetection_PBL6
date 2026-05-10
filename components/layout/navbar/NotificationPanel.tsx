@@ -2,34 +2,48 @@ import NotificationItem from "./NotificationItem"
 import { AlertTriangle, Droplets, Wind } from "lucide-react"
 import Link from "next/link"
 
+import { useNotificationStore } from "@/store/useNotificationStore"
+
 export default function NotificationPanel() {
 
-  const notifications = [
-    {
-      icon: <AlertTriangle size={16} className="text-red-500"/>,
-      title: "High Mold Risk",
-      desc: "Bedroom humidity reached 88%",
-      time: "2m ago",
-      unread: true
-    },
-    {
-      icon: <Droplets size={16} className="text-blue-500"/>,
-      title: "High Humidity",
-      desc: "Kitchen humidity reached 82%",
-      time: "10m ago",
-      unread: true
-    },
-    {
-      icon: <Wind size={16} className="text-indigo-500"/>,
-      title: "Automation Triggered",
-      desc: "Air purifier turned ON",
-      time: "25m ago",
-      unread: false
+  const {
+    notifications,
+    clearNotifications
+  } = useNotificationStore()
+
+  const getNotificationIcon = (type: string) => {
+
+    switch (type) {
+
+      case "alert":
+        return <AlertTriangle size={16} className="text-red-500"/>
+
+      case "warning":
+        return <Droplets size={16} className="text-blue-500"/>
+
+      case "automation":
+        return <Wind size={16} className="text-indigo-500"/>
+
+      default:
+        return <Droplets size={16} className="text-gray-500"/>
     }
-  ]
+  }
 
   return (
-    <div className="absolute right-0 mt-3 w-96 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl overflow-hidden z-50">
+    <div
+      className="
+        fixed top-12 right-2 z-50
+
+        w-[90vw]
+        sm:w-96
+
+        max-w-md
+
+        bg-white dark:bg-gray-900
+        border border-gray-100 dark:border-gray-800
+        rounded-2xl shadow-xl
+      "
+    >
 
       {/* HEADER */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
@@ -38,7 +52,10 @@ export default function NotificationPanel() {
           Notifications
         </h3>
 
-        <button className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
+        <button
+          onClick={clearNotifications}
+          className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline"
+        >
           Clear all
         </button>
 
@@ -47,8 +64,15 @@ export default function NotificationPanel() {
       {/* LIST */}
       <div className="max-h-80 overflow-y-auto">
 
-        {notifications.map((n, i) => (
-          <NotificationItem key={i} {...n}/>
+        {notifications.map((n) => (
+          <NotificationItem
+            key={n.id}
+            icon={getNotificationIcon(n.type)}
+            title={n.title}
+            desc={n.message}
+            time={new Date(n.createdAt).toLocaleTimeString()}
+            unread={!n.read}
+          />
         ))}
 
       </div>

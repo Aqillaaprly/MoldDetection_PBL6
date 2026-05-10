@@ -6,7 +6,12 @@ import MonitoringHeader from "@/components/monitoring/MonitoringHeader"
 import MetricCard from "@/components/monitoring/MetricCard"
 import TrendChart from "@/components/monitoring/TrendChart"
 import SensorHubsTable from "@/components/monitoring/SensorHubsTable"
-import { getSensorHubs, getTrendData, refreshSensorData } from "@/services/sensorService"
+import {
+  getSensorHubs,
+  getTrendData,
+  refreshSensorData
+} from "@/services/sensorService"
+
 import { SensorHub, MetricData } from "@/types/sensor"
 
 export default function MonitoringPage() {
@@ -15,46 +20,67 @@ export default function MonitoringPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // Load initial data
+  // Load realtime data
   useEffect(() => {
     const loadData = async () => {
       try {
-        setIsLoading(true)
+        await fetch("/api/sensors")
+
         const [hubs, trends] = await Promise.all([
           getSensorHubs(),
           getTrendData()
         ])
+
         setSensorHubs(hubs)
         setTrendData(trends)
+
       } catch (error) {
         console.error("Error loading monitoring data:", error)
+
       } finally {
         setIsLoading(false)
       }
     }
 
     loadData()
+
+    const interval = setInterval(loadData, 5000)
+
+    return () => clearInterval(interval)
+
   }, [])
 
-  // Handle refresh
+  // Manual refresh
   const handleRefresh = async () => {
     try {
       setIsRefreshing(true)
+
+      await fetch("/api/sensors")
+
       const hubs = await refreshSensorData()
+
       setSensorHubs(hubs)
+
     } catch (error) {
       console.error("Error refreshing sensor data:", error)
+
     } finally {
       setIsRefreshing(false)
     }
   }
 
-  // Get current metrics from the latest data
+  // Current metrics
   const getCurrentMetrics = () => {
     if (trendData.length === 0) {
-      return { humidity: 0, temperature: 0, light: 0 }
+      return {
+        humidity: 0,
+        temperature: 0,
+        light: 0
+      }
     }
-    const latest = trendData[trendData.length - 1]
+
+    const latest = trendData[0]
+
     return {
       humidity: latest.humidity || 0,
       temperature: latest.temperature || 0,
@@ -69,7 +95,10 @@ export default function MonitoringPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-700 border-t-indigo-500"></div>
-          <p className="mt-4 text-gray-400">Loading monitoring data...</p>
+
+          <p className="mt-4 text-gray-400">
+            Loading monitoring data...
+          </p>
         </div>
       </div>
     )
@@ -77,44 +106,60 @@ export default function MonitoringPage() {
 
   return (
     <div className="space-y-8 pb-8">
+
       {/* Header */}
       <MonitoringHeader
         sensorStatus="online"
-        lastUpdate="2 seconds ago"
+        lastUpdate="Just now"
       />
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
         <MetricCard
           title="Relative Humidity"
-          value={34}
+          value={metrics.humidity}
           unit="%"
-          status="OPTIMAL RANGE"
+          status={
+            metrics.humidity > 70
+              ? "HIGH HUMIDITY"
+              : "OPTIMAL RANGE"
+          }
           icon={<Droplet size={32} />}
           iconColor="text-cyan-500"
         />
 
         <MetricCard
           title="Ambient Temp"
-          value={22.4}
+          value={metrics.temperature}
           unit="°C"
-          status="STABLE"
+          status={
+            metrics.temperature > 28
+              ? "HOT"
+              : "STABLE"
+          }
           icon={<Thermometer size={32} />}
           iconColor="text-orange-500"
         />
 
         <MetricCard
           title="Lux Intensity"
-          value={820}
+          value={metrics.light}
           unit=""
-          status="HIGH EXPOSURE"
+          status={
+            metrics.light > 600
+              ? "HIGH EXPOSURE"
+              : "NORMAL"
+          }
           icon={<Lightbulb size={32} />}
           iconColor="text-yellow-500"
         />
+
       </div>
 
       {/* Trend Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
         <TrendChart
           title="Humidity Trend"
           data={trendData}
@@ -132,6 +177,7 @@ export default function MonitoringPage() {
           data={trendData}
           dataKey="light"
         />
+
       </div>
 
       {/* Sensor Hubs Table */}
@@ -140,6 +186,7 @@ export default function MonitoringPage() {
         onRefresh={handleRefresh}
         isLoading={isRefreshing}
       />
+
     </div>
   )
 }

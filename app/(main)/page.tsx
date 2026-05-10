@@ -1,7 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useSensorStore } from "@/store/useSensorStore"
+import { useNotificationStore } from "@/store/useNotificationStore" 
+import { useActivityStore } from "@/store/useActivityStore"
 
 import SensorCard from "@/components/dashboard/SensorCard"
 import DeviceToggle from "@/components/dashboard/DeviceToggle"
@@ -12,6 +14,12 @@ import MoldRiskCard from "@/components/dashboard/MoldRiskCard"
 import { getSensorHubs } from "@/services/sensorService"
 
 export default function Dashboard() {
+
+  const addNotification = useNotificationStore(
+  (state) => state.addNotification
+  )
+  const previousHumidityRef = useRef(false)
+
   const setSensorData = useSensorStore((state) => state.setSensorData)
 
   useEffect(() => {
@@ -27,6 +35,23 @@ export default function Dashboard() {
 
       if (data.length > 0) {
         setSensorData(data[0])
+      }
+
+      const humidity = data[0].humidity
+
+      if (humidity > 80 && !previousHumidityRef.current) {
+
+        addNotification({
+          title: "High Mold Risk",
+          message: `Humidity reached ${humidity}%`,
+          type: "alert"
+        })
+
+        previousHumidityRef.current = true
+      }
+
+      if (humidity <= 80) {
+        previousHumidityRef.current = false
       }
     } catch (error) {
       console.error("ERROR FETCH SUPABASE:", error)

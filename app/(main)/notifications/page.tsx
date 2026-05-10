@@ -1,42 +1,35 @@
 "use client"
 
 import { AlertTriangle, Droplets, Wind } from "lucide-react"
+import { useNotificationStore } from "@/store/useNotificationStore"
 
 export default function NotificationsPage() {
 
-  const today = [
-    {
-      icon: <AlertTriangle size={18} className="text-red-500"/>,
-      title: "High Mold Risk",
-      desc: "Bedroom humidity reached 88%",
-      time: "2 min ago",
-      unread: true
-    },
-    {
-      icon: <Droplets size={18} className="text-blue-500"/>,
-      title: "High Humidity",
-      desc: "Kitchen humidity reached 82%",
-      time: "10 min ago",
-      unread: true
-    }
-  ]
+  const {
+    notifications,
+    clearNotifications
+  } = useNotificationStore()
 
-  const earlier = [
-    {
-      icon: <Wind size={18} className="text-indigo-500"/>,
-      title: "Automation Triggered",
-      desc: "Air purifier turned ON automatically",
-      time: "25 min ago",
-      unread: false
-    },
-    {
-      icon: <Droplets size={18} className="text-blue-500"/>,
-      title: "Humidity Normal",
-      desc: "Living room humidity returned to safe level",
-      time: "1 hour ago",
-      unread: false
+  const today = notifications.slice(0, 5)
+  const earlier = notifications.slice(5)
+
+  const getNotificationIcon = (type: string) => {
+
+    switch (type) {
+
+      case "alert":
+        return <AlertTriangle size={18} className="text-red-500"/>
+
+      case "warning":
+        return <Droplets size={18} className="text-blue-500"/>
+
+      case "automation":
+        return <Wind size={18} className="text-indigo-500"/>
+
+      default:
+        return <Droplets size={18} className="text-gray-500"/>
     }
-  ]
+  }
 
   return (
     <div className="space-y-8">
@@ -54,12 +47,14 @@ export default function NotificationsPage() {
           </p>
         </div>
 
-        <button className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
-          Mark all as read
+        <button
+          onClick={clearNotifications}
+          className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+        >
+          Clear all
         </button>
 
       </div>
-
 
       {/* TODAY */}
       <div>
@@ -70,14 +65,20 @@ export default function NotificationsPage() {
 
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
 
-          {today.map((n, i) => (
-            <NotificationRow key={i} {...n}/>
+          {today.map((n) => (
+            <NotificationRow
+              key={n.id}
+              icon={getNotificationIcon(n.type)}
+              title={n.title}
+              desc={n.message}
+              time={new Date(n.createdAt).toLocaleTimeString()}
+              unread={!n.read}
+            />
           ))}
 
         </div>
 
       </div>
-
 
       {/* EARLIER */}
       <div>
@@ -88,8 +89,15 @@ export default function NotificationsPage() {
 
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
 
-          {earlier.map((n, i) => (
-            <NotificationRow key={i} {...n}/>
+          {earlier.map((n) => (
+            <NotificationRow
+              key={n.id}
+              icon={getNotificationIcon(n.type)}
+              title={n.title}
+              desc={n.message}
+              time={new Date(n.createdAt).toLocaleTimeString()}
+              unread={!n.read}
+            />
           ))}
 
         </div>
@@ -99,7 +107,6 @@ export default function NotificationsPage() {
     </div>
   )
 }
-
 
 function NotificationRow({
   icon,

@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 import {
   LineChart,
   Line,
@@ -10,15 +12,33 @@ import {
   CartesianGrid
 } from "recharts"
 
-const data = [
-  { time: "08:00", humidity: 70 },
-  { time: "10:00", humidity: 75 },
-  { time: "12:00", humidity: 78 },
-  { time: "14:00", humidity: 80 },
-  { time: "16:00", humidity: 76 }
-]
+import { getTrendData } from "@/services/sensorService"
+import { MetricData } from "@/types/sensor"
 
 export default function AnalyticsChart() {
+
+  const [data, setData] = useState<MetricData[]>([])
+
+  useEffect(() => {
+
+    const loadTrendData = async () => {
+      try {
+        const trend = await getTrendData()
+
+        setData(trend)
+
+      } catch (error) {
+        console.error("Error loading analytics chart:", error)
+      }
+    }
+
+    loadTrendData()
+
+    const interval = setInterval(loadTrendData, 5000)
+
+    return () => clearInterval(interval)
+
+  }, [])
 
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">

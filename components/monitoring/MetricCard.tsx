@@ -12,7 +12,13 @@ interface MetricCardProps {
   title: string
   value: number
   unit?: string
-  status: "OPTIMAL RANGE" | "STABLE" | "HIGH EXPOSURE"
+  status:
+  | "OPTIMAL RANGE"
+  | "STABLE"
+  | "HIGH EXPOSURE"
+  | "HIGH HUMIDITY"
+  | "HOT"
+  | "NORMAL"
   maxValue?: number
   icon?: React.ReactNode
   iconColor?: string
@@ -44,6 +50,20 @@ export default function MetricCard({
         return {
           badge: "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300"
         }
+      case "HIGH HUMIDITY":
+        return {
+          badge: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300"
+        }
+
+      case "HOT":
+        return {
+          badge: "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300"
+        }
+
+      case "NORMAL":
+        return {
+          badge: "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300"
+        }  
       default:
         return {
           badge: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
