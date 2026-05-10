@@ -114,7 +114,7 @@ export const getTrendData = async (
     .from('sensor_data')
     .select('*')
     .eq('room_id', roomId)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: true })
     .limit(10)
 
   if (error) {
