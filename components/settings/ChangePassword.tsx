@@ -1,8 +1,18 @@
+interface ChangePasswordProps {
+  oldPassword: string
+  setOldPassword: (v: string) => void
+  newPassword: string
+  setNewPassword: (v: string) => void
+  confirmPassword: string
+  setConfirmPassword: (v: string) => void
+}
+
 export default function ChangePassword({
   oldPassword, setOldPassword,
   newPassword, setNewPassword,
   confirmPassword, setConfirmPassword
-}: any) {
+}: ChangePasswordProps) {
+  
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-6">
 

@@ -1,5 +1,11 @@
 import { create } from "zustand"
 
+interface SensorData {
+  humidity: number
+  temperature: number
+  light: number
+}
+
 interface SensorState {
   humidity: number
   temperature: number
@@ -9,7 +15,7 @@ interface SensorState {
   previousTemperature: number
   previousLight: number
 
-  setSensorData: (data: any) => void
+  setSensorData: (data: SensorData) => void
 }
 
 export const useSensorStore = create<SensorState>((set, get) => ({

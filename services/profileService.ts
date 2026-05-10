@@ -78,7 +78,6 @@ export async function uploadAvatar(file: File) {
 
   const ext = file.name.split(".").pop()
   // Tambahkan timestamp supaya tidak kena cache
-  const filePath = `avatars/${user.id}.${ext}?t=${Date.now()}`
   const storagePath = `avatars/${user.id}.${ext}`
 
   const { error: uploadError } = await supabase.storage
