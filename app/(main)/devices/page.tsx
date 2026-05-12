@@ -8,48 +8,17 @@ import AutomationPanel from "@/components/devices/AutomationPanel"
 import DeviceEvents from "@/components/devices/DeviceEvents"
 import ZoneCalibration from "@/components/devices/ZoneCalibration"
 
-interface DeviceState {
-  enabled: boolean
-  isOn: boolean
-  connectivity: "online" | "offline"
-}
-
-interface Room {
-  name: string
-  dehumidifier: DeviceState
-  exhaust: DeviceState
-}
+import { useDeviceStore } from "@/store/useDeviceStore"
 
 export default function DevicePage() {
 
-  const [rooms, setRooms] = useState<Room[]>([
-    {
-      name: "Living Room",
-      dehumidifier: {
-        enabled: true,
-        isOn: false,
-        connectivity: "online"
-      },
-      exhaust: {
-        enabled: true,
-        isOn: true,
-        connectivity: "offline"
-      }
-    },
-    {
-      name: "Bedroom 1",
-      dehumidifier: {
-        enabled: true,
-        isOn: true,
-        connectivity: "online"
-      },
-      exhaust: {
-        enabled: false,
-        isOn: false,
-        connectivity: "offline"
-      }
-    }
-  ])
+  const {
+    rooms,
+    addRoom,
+    deleteRoom,
+    editRoom,
+    toggleDevice
+  } = useDeviceStore()
 
   const [showAdd, setShowAdd] = useState(false)
 
@@ -58,43 +27,40 @@ export default function DevicePage() {
   const [newExhaust, setNewExhaust] = useState(false)
 
   const [showEdit, setShowEdit] = useState(false)
-  const [editIndex, setEditIndex] = useState<number | null>(null)
 
-  const [editRoomName, setEditRoomName] = useState("")
-  const [editDehumidifier, setEditDehumidifier] = useState(false)
-  const [editExhaust, setEditExhaust] = useState(false)
+  const [editIndex, setEditIndex] =
+    useState<number | null>(null)
 
-  // TOGGLE DEVICE
-  const toggleDevice = (index: number, type: "dehumidifier" | "exhaust") => {
+  const [editRoomName, setEditRoomName] =
+    useState("")
 
-    const updated = [...rooms]
+  const [editDehumidifier, setEditDehumidifier] =
+    useState(false)
 
-    updated[index][type].isOn = !updated[index][type].isOn
+  const [editExhaust, setEditExhaust] =
+    useState(false)
 
-    setRooms(updated)
-  }
-
-  // ADD DEVICE
-  const addDevice = () => {
+  // ADD ROOM
+  const handleAddRoom = () => {
 
     if (!newRoom.trim()) return
 
-    setRooms([
-      ...rooms,
-      {
-        name: newRoom,
-        dehumidifier: {
-          enabled: newDehumidifier,
-          isOn: false,
-          connectivity: "offline"
-        },
-        exhaust: {
-          enabled: newExhaust,
-          isOn: false,
-          connectivity: "offline"
-        }
+    addRoom({
+
+      name: newRoom,
+
+      dehumidifier: {
+        enabled: newDehumidifier,
+        isOn: false,
+        connectivity: "offline"
+      },
+
+      exhaust: {
+        enabled: newExhaust,
+        isOn: false,
+        connectivity: "offline"
       }
-    ])
+    })
 
     setNewRoom("")
     setNewDehumidifier(false)
@@ -102,16 +68,22 @@ export default function DevicePage() {
     setShowAdd(false)
   }
 
-  // OPEN EDIT MODAL
-  const editRoom = (index: number) => {
+  // OPEN EDIT
+  const openEdit = (index: number) => {
 
     const room = rooms[index]
 
     setEditIndex(index)
+
     setEditRoomName(room.name)
 
-    setEditDehumidifier(room.dehumidifier.enabled)
-    setEditExhaust(room.exhaust.enabled)
+    setEditDehumidifier(
+      room.dehumidifier.enabled
+    )
+
+    setEditExhaust(
+      room.exhaust.enabled
+    )
 
     setShowEdit(true)
   }
@@ -121,39 +93,40 @@ export default function DevicePage() {
 
     if (editIndex === null) return
 
-    const updated = [...rooms]
+    editRoom(editIndex, {
 
-    updated[editIndex] = {
       name: editRoomName,
-      dehumidifier: {
-        enabled: editDehumidifier,
-        isOn: updated[editIndex].dehumidifier.isOn,
-        connectivity: updated[editIndex].dehumidifier.connectivity
-      },
-      exhaust: {
-        enabled: editExhaust,
-        isOn: updated[editIndex].exhaust.isOn,
-        connectivity: updated[editIndex].exhaust.connectivity
-      }
-    }
 
-    setRooms(updated)
+      dehumidifier: {
+        ...rooms[editIndex].dehumidifier,
+        enabled: editDehumidifier
+      },
+
+      exhaust: {
+        ...rooms[editIndex].exhaust,
+        enabled: editExhaust
+      }
+    })
+
     setShowEdit(false)
   }
 
   // DELETE ROOM
-  const deleteRoom = (index: number) => {
+  const handleDeleteRoom = (
+    index: number
+  ) => {
 
-    const confirmDelete = confirm("Delete this device setup?")
+    const confirmDelete = confirm(
+      "Delete this device setup?"
+    )
 
     if (!confirmDelete) return
 
-    const updated = rooms.filter((_, i) => i !== index)
-
-    setRooms(updated)
+    deleteRoom(index)
   }
 
   return (
+
     <div className="space-y-6">
 
       {/* HEADER */}
@@ -174,7 +147,7 @@ export default function DevicePage() {
 
       <div className="grid grid-cols-12 gap-6">
 
-        {/* LEFT SIDE */}
+        {/* LEFT */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -196,14 +169,16 @@ export default function DevicePage() {
                   <div className="flex gap-3">
 
                     <button
-                      onClick={() => editRoom(i)}
+                      onClick={() => openEdit(i)}
                       className="text-gray-400 hover:text-indigo-500 transition"
                     >
                       <Pencil size={16}/>
                     </button>
 
                     <button
-                      onClick={() => deleteRoom(i)}
+                      onClick={() =>
+                        handleDeleteRoom(i)
+                      }
                       className="text-gray-400 hover:text-red-500 transition"
                     >
                       <Trash2 size={16}/>
@@ -217,25 +192,39 @@ export default function DevicePage() {
                 <div className="grid grid-cols-2 gap-4">
 
                   {room.dehumidifier.enabled && (
+
                     <DeviceCard
                       name="Dehumidifier"
                       location={room.name}
                       isOn={room.dehumidifier.isOn}
                       connectivity={room.dehumidifier.connectivity}
-                      toggle={() => toggleDevice(i, "dehumidifier")}
+                      toggle={() =>
+                        toggleDevice(
+                          room.name,
+                          "dehumidifier"
+                        )
+                      }
                       type="purifier"
                     />
+
                   )}
 
                   {room.exhaust.enabled && (
+
                     <DeviceCard
                       name="Exhaust Fan"
                       location={room.name}
                       isOn={room.exhaust.isOn}
                       connectivity={room.exhaust.connectivity}
-                      toggle={() => toggleDevice(i, "exhaust")}
+                      toggle={() =>
+                        toggleDevice(
+                          room.name,
+                          "exhaust"
+                        )
+                      }
                       type="exhaust"
                     />
+
                   )}
 
                 </div>
@@ -250,17 +239,18 @@ export default function DevicePage() {
 
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* RIGHT */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
 
           <AutomationPanel />
+
           <DeviceEvents />
 
         </div>
 
       </div>
 
-      {/* ADD DEVICE MODAL */}
+      {/* ADD MODAL */}
       {showAdd && (
 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -275,28 +265,44 @@ export default function DevicePage() {
               type="text"
               placeholder="Room name"
               value={newRoom}
-              onChange={(e) => setNewRoom(e.target.value)}
+              onChange={(e) =>
+                setNewRoom(e.target.value)
+              }
               className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-4 py-2 text-sm"
             />
 
             <div className="mt-4 space-y-2 text-sm">
 
               <label className="flex items-center gap-2">
+
                 <input
                   type="checkbox"
                   checked={newDehumidifier}
-                  onChange={(e) => setNewDehumidifier(e.target.checked)}
+                  onChange={(e) =>
+                    setNewDehumidifier(
+                      e.target.checked
+                    )
+                  }
                 />
+
                 Dehumidifier
+
               </label>
 
               <label className="flex items-center gap-2">
+
                 <input
                   type="checkbox"
                   checked={newExhaust}
-                  onChange={(e) => setNewExhaust(e.target.checked)}
+                  onChange={(e) =>
+                    setNewExhaust(
+                      e.target.checked
+                    )
+                  }
                 />
+
                 Exhaust Fan
+
               </label>
 
             </div>
@@ -304,14 +310,16 @@ export default function DevicePage() {
             <div className="flex justify-end gap-3 mt-6">
 
               <button
-                onClick={() => setShowAdd(false)}
+                onClick={() =>
+                  setShowAdd(false)
+                }
                 className="px-4 py-2 text-sm rounded-xl bg-gray-100 dark:bg-gray-800"
               >
                 Cancel
               </button>
 
               <button
-                onClick={addDevice}
+                onClick={handleAddRoom}
                 className="px-4 py-2 text-sm rounded-xl bg-indigo-600 text-white"
               >
                 Add
@@ -325,7 +333,7 @@ export default function DevicePage() {
 
       )}
 
-      {/* EDIT DEVICE MODAL */}
+      {/* EDIT MODAL */}
       {showEdit && (
 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -339,28 +347,46 @@ export default function DevicePage() {
             <input
               type="text"
               value={editRoomName}
-              onChange={(e) => setEditRoomName(e.target.value)}
+              onChange={(e) =>
+                setEditRoomName(
+                  e.target.value
+                )
+              }
               className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-xl px-4 py-2 text-sm"
             />
 
             <div className="mt-4 space-y-2 text-sm">
 
               <label className="flex items-center gap-2">
+
                 <input
                   type="checkbox"
                   checked={editDehumidifier}
-                  onChange={(e) => setEditDehumidifier(e.target.checked)}
+                  onChange={(e) =>
+                    setEditDehumidifier(
+                      e.target.checked
+                    )
+                  }
                 />
+
                 Dehumidifier
+
               </label>
 
               <label className="flex items-center gap-2">
+
                 <input
                   type="checkbox"
                   checked={editExhaust}
-                  onChange={(e) => setEditExhaust(e.target.checked)}
+                  onChange={(e) =>
+                    setEditExhaust(
+                      e.target.checked
+                    )
+                  }
                 />
+
                 Exhaust Fan
+
               </label>
 
             </div>
@@ -368,7 +394,9 @@ export default function DevicePage() {
             <div className="flex justify-end gap-3 mt-6">
 
               <button
-                onClick={() => setShowEdit(false)}
+                onClick={() =>
+                  setShowEdit(false)
+                }
                 className="px-4 py-2 text-sm rounded-xl bg-gray-100 dark:bg-gray-800"
               >
                 Cancel

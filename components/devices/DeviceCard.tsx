@@ -13,7 +13,7 @@ interface Props {
 
 export default function DeviceCard({
   name,
-  location,
+  location: _location,
   isOn,
   connectivity,
   toggle,
@@ -24,7 +24,6 @@ export default function DeviceCard({
 
   const isOnline = connectivity === "online"
 
-  // FIX: offline device always OFF
   const realStatus = isOnline ? isOn : false
 
   const statusStyle = realStatus

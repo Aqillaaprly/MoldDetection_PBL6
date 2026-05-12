@@ -1,157 +1,233 @@
 import { supabase } from '@/lib/supabase'
-import { SensorHub, MetricData } from "@/types/sensor"
+
+import {
+  SensorHub,
+  MetricData
+} from "@/types/sensor"
+
+import { useDeviceStore } from "@/store/useDeviceStore"
 
 interface SensorRow {
+
   room_id: number
+
   temperature: number
+
   humidity: number
+
   light: number
+
   created_at: string
 }
 
-const rooms = [
+// 🔹 Ambil latest sensor tiap room
+export const getSensorHubs =
+  async (): Promise<SensorHub[]> => {
 
-  {
-    id: 1,
-    name: "Living Room"
-  },
+    try {
 
-  {
-    id: 2,
-    name: "Bedroom 1"
-  },
+      const res = await fetch(
+        "/api/sensors"
+      )
 
-  {
-    id: 3,
-    name: "Bedroom 2"
-  },
+      const data = await res.json()
 
-  {
-    id: 4,
-    name: "Kitchen"
+      console.log(
+        "API RESPONSE:",
+        data
+      )
+
+      if (!Array.isArray(data)) {
+
+        console.error(
+          "DATA BUKAN ARRAY:",
+          data
+        )
+
+        return []
+
+      }
+
+      // ROOM DARI STORE
+      const rooms =
+        useDeviceStore.getState().rooms
+
+      const latestPerRoom =
+        rooms.map((room, index) => {
+
+          const roomId = index + 1
+
+          const roomData =
+            (data as SensorRow[]).filter(
+              (item) =>
+                item.room_id === roomId
+            )
+
+          const latest = roomData[0]
+
+          // JIKA BELUM ADA SENSOR
+          if (!latest) {
+
+            return {
+
+              id: `hub-${roomId}`,
+
+              name: `HUB-${roomId}`,
+
+              location: room.name,
+
+              sensorType: "DHT22",
+
+              temperature: 0,
+
+              humidity: 0,
+
+              light: 0,
+
+              currentValue:
+                `0°C / 0% RH`,
+
+              status: "ACTIVE" as const,
+
+              battery: 90,
+
+              lastSync: "No Data"
+
+            }
+          }
+
+          return {
+
+            id: `hub-${roomId}`,
+
+            name: `HUB-${roomId}`,
+
+            location: room.name,
+
+            sensorType: "DHT22",
+
+            temperature:
+              latest.temperature,
+
+            humidity:
+              latest.humidity,
+
+            light:
+              latest.light,
+
+            currentValue:
+              `${latest.temperature}°C / ${latest.humidity}% RH`,
+
+            status:
+              latest.humidity > 70
+                ? "ALERT" as const
+                : "ACTIVE" as const,
+
+            battery: 90,
+
+            lastSync: "Just Now"
+
+          }
+
+        })
+
+      return latestPerRoom
+
+    } catch (error) {
+
+      console.error(
+        "Fetch API error:",
+        error
+      )
+
+      return []
+
+    }
   }
 
-]
+// 🔹 Trend data chart
+export const getTrendData =
+  async (
+    roomId: number
+  ): Promise<MetricData[]> => {
 
-// 🔹 Ambil latest sensor tiap room
-export const getSensorHubs = async (): Promise<SensorHub[]> => {
+    // CEGAH ERROR undefined
+    if (!roomId) {
+      return []
+    }
 
-  try {
+    const {
+      data,
+      error
+    } = await supabase
 
-    const res = await fetch("/api/sensors")
+      .from('sensor_data')
 
-    const data = await res.json()
+      .select('*')
 
-    console.log("API RESPONSE:", data)
+      .eq('room_id', roomId)
 
-    if (!Array.isArray(data)) {
+      .order(
+        'created_at',
+        { ascending: true }
+      )
 
-      console.error("DATA BUKAN ARRAY:", data)
+      .limit(10)
+
+    if (error) {
+
+      console.error(
+        'Error fetching trend data:',
+        error
+      )
 
       return []
 
     }
 
-    const latestPerRoom = rooms.map((room) => {
+    // JIKA DATA KOSONG
+    if (!data || data.length === 0) {
 
-      const roomData = (data as SensorRow[]).filter(
-        (item) => item.room_id === room.id
-      )
+      return [
+        {
+          time: "00:00",
+          humidity: 0,
+          temperature: 0,
+          light: 0
+        }
+      ]
+    }
 
-      const latest = roomData[0]
+    return data.map((item) => ({
 
-      if (!latest) return null
+      time: new Date(
+        item.created_at
+      ).toLocaleTimeString([], {
 
-      return {
+        hour: '2-digit',
 
-        id: `hub-${room.id}`,
+        minute: '2-digit',
 
-        name: `HUB-${room.id}`,
+        second: '2-digit'
 
-        location: room.name,
+      }),
 
-        sensorType: "DHT22",
+      humidity: item.humidity,
 
-        temperature: latest.temperature,
+      temperature: item.temperature,
 
-        humidity: latest.humidity,
+      light: item.light
 
-        light: latest.light,
-
-        currentValue:
-          `${latest.temperature}°C / ${latest.humidity}% RH`,
-
-        status:
-          latest.humidity > 70
-            ? "ALERT" as const
-            : "ACTIVE" as const,
-
-        battery: 90,
-
-        lastSync: "Just Now"
-
-      }
-
-    }).filter(Boolean) as SensorHub[]
-
-    return latestPerRoom
-
-  } catch (error) {
-
-    console.error("Fetch API error:", error)
-
-    return []
-
-  }
-}
-
-// 🔹 Trend data untuk chart berdasarkan room
-export const getTrendData = async (
-  roomId: number
-): Promise<MetricData[]> => {
-
-  const { data, error } = await supabase
-    .from('sensor_data')
-    .select('*')
-    .eq('room_id', roomId)
-    .order('created_at', { ascending: true })
-    .limit(10)
-
-  if (error) {
-
-    console.error('Error fetching trend data:', error)
-
-    return []
-
+    }))
   }
 
-  return data.map((item) => ({
+// 🔹 Refresh
+export const refreshSensorData =
+  async (): Promise<SensorHub[]> => {
 
-    time: new Date(item.created_at).toLocaleTimeString([], {
+    return await getSensorHubs()
 
-      hour: '2-digit',
-
-      minute: '2-digit',
-
-      second: '2-digit'
-
-    }),
-
-    humidity: item.humidity,
-
-    temperature: item.temperature,
-
-    light: item.light
-
-  }))
-}
-
-// 🔹 Refresh data
-export const refreshSensorData = async (): Promise<SensorHub[]> => {
-
-  return await getSensorHubs()
-
-}
+  }
 
 console.log(
   "URL:",

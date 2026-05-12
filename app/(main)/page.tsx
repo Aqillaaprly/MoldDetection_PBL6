@@ -1,10 +1,12 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+
 import { useSensorStore } from "@/store/useSensorStore"
 import { useNotificationStore } from "@/store/useNotificationStore"
 import { useActivityStore } from "@/store/useActivityStore"
 import { useRoomStore } from "@/store/useRoomStore"
+import { useDeviceStore } from "@/store/useDeviceStore"
 
 import SensorCard from "@/components/dashboard/SensorCard"
 import DeviceToggle from "@/components/dashboard/DeviceToggle"
@@ -13,13 +15,6 @@ import AnalyticsChart from "@/components/dashboard/AnalyticsChart"
 import MoldRiskCard from "@/components/dashboard/MoldRiskCard"
 
 import { getSensorHubs } from "@/services/sensorService"
-
-const roomMap: Record<string, number> = {
-  "Living Room": 1,
-  "Bedroom 1": 2,
-  "Bedroom 2": 3,
-  "Kitchen": 4
-}
 
 export default function Dashboard() {
 
@@ -40,7 +35,9 @@ export default function Dashboard() {
     setSelectedRoom
   } = useRoomStore()
 
-  const roomId = roomMap[selectedRoom]
+  const rooms = useDeviceStore(
+    (state) => state.rooms
+  )
 
   const previousHumidityRef = useRef(false)
   const previousTempRef = useRef(false)
@@ -52,10 +49,8 @@ export default function Dashboard() {
 
       try {
 
-        // generate + insert data
         await fetch("/api/sensors")
 
-        // ambil data terbaru berdasarkan room
         const data = await getSensorHubs()
 
         console.log("DATA SUPABASE:", data)
@@ -71,13 +66,14 @@ export default function Dashboard() {
           setSensorData(currentRoomData)
 
           const humidity = currentRoomData.humidity
-
           const temperature = currentRoomData.temperature
-
           const light = currentRoomData.light
-          
-          // HUMIDITY TRIGGER
-          if (humidity > 80 && !previousHumidityRef.current) {
+
+          // HUMIDITY ALERT
+          if (
+            humidity > 80 &&
+            !previousHumidityRef.current
+          ) {
 
             addActivity({
               title: `[${selectedRoom}] High humidity detected`,
@@ -98,8 +94,11 @@ export default function Dashboard() {
             previousHumidityRef.current = false
           }
 
-          // TEMPERATURE TRIGGER
-          if (temperature > 30 && !previousTempRef.current) {
+          // TEMPERATURE ALERT
+          if (
+            temperature > 30 &&
+            !previousTempRef.current
+          ) {
 
             addActivity({
               title: `[${selectedRoom}] High temperature detected`,
@@ -120,8 +119,11 @@ export default function Dashboard() {
             previousTempRef.current = false
           }
 
-          // LIGHT TRIGGER
-          if (light > 700 && !previousLightRef.current) {
+          // LIGHT ALERT
+          if (
+            light > 700 &&
+            !previousLightRef.current
+          ) {
 
             addActivity({
               title: `[${selectedRoom}] High light exposure`,
@@ -146,20 +148,32 @@ export default function Dashboard() {
 
       } catch (error) {
 
-        console.error("ERROR FETCH SUPABASE:", error)
+        console.error(
+          "ERROR FETCH SUPABASE:",
+          error
+        )
 
       }
     }
 
     fetchFromSupabase()
 
-    const interval = setInterval(fetchFromSupabase, 5000)
+    const interval = setInterval(
+      fetchFromSupabase,
+      5000
+    )
 
     return () => clearInterval(interval)
 
-  }, [selectedRoom])
+  }, [
+    selectedRoom,
+    addActivity,
+    addNotification,
+    setSensorData
+  ])
 
   return (
+
     <div className="space-y-6">
 
       <div className="flex justify-between items-center">
@@ -170,7 +184,9 @@ export default function Dashboard() {
 
         <select
           value={selectedRoom}
-          onChange={(e) => setSelectedRoom(e.target.value)}
+          onChange={(e) =>
+            setSelectedRoom(e.target.value)
+          }
           className="
             bg-white dark:bg-gray-800
             text-gray-700 dark:text-gray-200
@@ -185,21 +201,18 @@ export default function Dashboard() {
             focus:ring-indigo-500
           "
         >
-          <option className="bg-white dark:bg-gray-800">
-            Living Room
-          </option>
 
-          <option className="bg-white dark:bg-gray-800">
-            Bedroom 1
-          </option>
+          {rooms.map((room, i) => (
 
-          <option className="bg-white dark:bg-gray-800">
-            Bedroom 2
-          </option>
+            <option
+              key={i}
+              className="bg-white dark:bg-gray-800"
+            >
+              {room.name}
+            </option>
 
-          <option className="bg-white dark:bg-gray-800">
-            Kitchen
-          </option>
+          ))}
+
         </select>
 
       </div>

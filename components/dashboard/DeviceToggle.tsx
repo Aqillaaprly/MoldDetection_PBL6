@@ -1,81 +1,48 @@
 "use client"
 
-import { useEffect, useState } from "react"
-
-import {
-  Wind,
-  AirVent
-} from "lucide-react"
+import { Wind, AirVent } from "lucide-react"
+import React from "react"
 
 import { useRoomStore } from "@/store/useRoomStore"
-
 import { useSensorStore } from "@/store/useSensorStore"
+import { useDeviceStore } from "@/store/useDeviceStore"
+
+interface ToggleProps {
+  name: string
+  state: boolean
+  onClick: () => void
+  disabled?: boolean
+  icon: React.ReactNode
+}
 
 export default function DeviceToggle() {
-
   const { selectedRoom } = useRoomStore()
+  const { humidity, temperature } = useSensorStore()
 
   const {
-    humidity,
-    temperature
-  } = useSensorStore()
-
-  const [mode, setMode] = useState<
-    "AUTO" | "MANUAL"
-  >("AUTO")
-
-  const [devices, setDevices] = useState({
-
-    exhaust: false,
-
-    dehumidifier: false
-
-  })
-
-  // AUTO AUTOMATION
-  useEffect(() => {
-
-    if (mode === "AUTO") {
-
-      setDevices({
-
-        dehumidifier: humidity > 80,
-
-        exhaust: temperature > 30
-
-      })
-
-    }
-
-  }, [
+    rooms,
     mode,
-    humidity,
-    temperature,
-    selectedRoom
-  ])
+    setMode,
+    toggleDevice
+  } = useDeviceStore()
 
-  const toggleDevice = (
-    key: "exhaust" | "dehumidifier"
-  ) => {
+  const currentRoom = rooms.find(
+    (r) => r.name === selectedRoom
+  )
 
-    if (mode === "MANUAL") {
+  if (!currentRoom) return null
 
-      setDevices((prev) => ({
-
-        ...prev,
-
-        [key]: !prev[key]
-
-      }))
-
-    }
+  const auto: {
+    dehumidifier: boolean
+    exhaust: boolean
+  } = {
+    dehumidifier: humidity > 80,
+    exhaust: temperature > 30
   }
 
   return (
-
     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm">
 
-      {/* MODE SWITCH */}
       <div className="flex justify-between mb-6">
 
         <h3 className="font-semibold text-lg">
@@ -84,11 +51,7 @@ export default function DeviceToggle() {
 
         <button
           onClick={() =>
-            setMode(
-              mode === "AUTO"
-                ? "MANUAL"
-                : "AUTO"
-            )
+            setMode(mode === "AUTO" ? "MANUAL" : "AUTO")
           }
           className="text-sm font-medium text-indigo-600"
         >
@@ -99,28 +62,39 @@ export default function DeviceToggle() {
 
       <div className="grid md:grid-cols-2 gap-6">
 
-        <Toggle
-          name="Dehumidifier"
-          state={devices.dehumidifier}
-          onClick={() =>
-            toggleDevice("dehumidifier")
-          }
-          disabled={mode === "AUTO"}
-          icon={<AirVent size={18}/>}
-        />
+        {currentRoom.dehumidifier.enabled && (
+          <Toggle
+            name="Dehumidifier"
+            state={
+              mode === "AUTO"
+                ? auto.dehumidifier
+                : currentRoom.dehumidifier.isOn
+            }
+            onClick={() =>
+              toggleDevice(selectedRoom, "dehumidifier")
+            }
+            disabled={mode === "AUTO"}
+            icon={<AirVent size={18} />}
+          />
+        )}
 
-        <Toggle
-          name="Exhaust Fan"
-          state={devices.exhaust}
-          onClick={() =>
-            toggleDevice("exhaust")
-          }
-          disabled={mode === "AUTO"}
-          icon={<Wind size={18}/>}
-        />
+        {currentRoom.exhaust.enabled && (
+          <Toggle
+            name="Exhaust Fan"
+            state={
+              mode === "AUTO"
+                ? auto.exhaust
+                : currentRoom.exhaust.isOn
+            }
+            onClick={() =>
+              toggleDevice(selectedRoom, "exhaust")
+            }
+            disabled={mode === "AUTO"}
+            icon={<Wind size={18} />}
+          />
+        )}
 
       </div>
-
     </div>
   )
 }
@@ -129,74 +103,42 @@ function Toggle({
   name,
   state,
   onClick,
-  disabled,
+  disabled = false,
   icon
-}: any) {
-
+}: ToggleProps) {
   return (
-
-    <div className={`
-      flex items-center justify-between
-      p-4 rounded-xl transition-all
-
-      ${
-        state
-          ? "bg-indigo-500 text-white"
-          : "bg-gray-100 dark:bg-gray-800"
-      }
-    `}>
+    <div
+      className={`flex items-center justify-between p-4 rounded-xl transition-all
+      ${state ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-gray-800"}
+    `}
+    >
 
       <div className="flex items-center gap-3">
-
         <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/20">
           {icon}
         </div>
 
         <div>
-
-          <p className="text-sm font-medium">
-            {name}
-          </p>
-
+          <p className="text-sm font-medium">{name}</p>
           <p className="text-xs opacity-70">
             {state ? "ON" : "OFF"}
           </p>
-
         </div>
-
       </div>
 
       <button
         onClick={onClick}
         disabled={disabled}
-        className={`
-          w-12 h-6 rounded-full
-          relative transition
-
-          ${
-            state
-              ? "bg-green-400"
-              : "bg-gray-300"
-          }
-
-          ${
-            disabled &&
-            "opacity-50 cursor-not-allowed"
-          }
+        className={`w-12 h-6 rounded-full relative transition
+          ${state ? "bg-green-400" : "bg-gray-300"}
+          ${disabled ? "opacity-50 cursor-not-allowed" : ""}
         `}
       >
-
-        <span className={`
-          absolute top-1 left-1
-          w-4 h-4 bg-white rounded-full
-          transition
-
-          ${
-            state &&
-            "translate-x-6"
-          }
-        `}/>
-
+        <span
+          className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition
+            ${state ? "translate-x-6" : ""}
+          `}
+        />
       </button>
 
     </div>
