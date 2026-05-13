@@ -1,10 +1,13 @@
 "use client"
 
-import { Wind, AirVent } from "lucide-react"
 import React from "react"
 
+import {
+  Wind,
+  AirVent
+} from "lucide-react"
+
 import { useRoomStore } from "@/store/useRoomStore"
-import { useSensorStore } from "@/store/useSensorStore"
 import { useDeviceStore } from "@/store/useDeviceStore"
 
 interface ToggleProps {
@@ -16,8 +19,8 @@ interface ToggleProps {
 }
 
 export default function DeviceToggle() {
-  const { selectedRoom } = useRoomStore()
-  const { humidity, temperature } = useSensorStore()
+  const { selectedRoom } =
+    useRoomStore()
 
   const {
     rooms,
@@ -26,18 +29,30 @@ export default function DeviceToggle() {
     toggleDevice
   } = useDeviceStore()
 
-  const currentRoom = rooms.find(
-    (r) => r.name === selectedRoom
-  )
+  const currentRoom =
+    rooms.find(
+      (room) =>
+        room.name === selectedRoom
+    )
 
-  if (!currentRoom) return null
+  if (!currentRoom) {
+    return (
+      <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm">
+        <div className="flex justify-between mb-6">
+          <h3 className="font-semibold text-lg">
+            {selectedRoom} Device Control
+          </h3>
 
-  const auto: {
-    dehumidifier: boolean
-    exhaust: boolean
-  } = {
-    dehumidifier: humidity > 80,
-    exhaust: temperature > 30
+          <button className="text-sm font-medium text-indigo-600">
+            {mode}
+          </button>
+        </div>
+
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          No device registered for this room.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -51,7 +66,11 @@ export default function DeviceToggle() {
 
         <button
           onClick={() =>
-            setMode(mode === "AUTO" ? "MANUAL" : "AUTO")
+            setMode(
+              mode === "AUTO"
+                ? "MANUAL"
+                : "AUTO"
+            )
           }
           className="text-sm font-medium text-indigo-600"
         >
@@ -66,12 +85,13 @@ export default function DeviceToggle() {
           <Toggle
             name="Dehumidifier"
             state={
-              mode === "AUTO"
-                ? auto.dehumidifier
-                : currentRoom.dehumidifier.isOn
+              currentRoom.dehumidifier.isOn
             }
             onClick={() =>
-              toggleDevice(selectedRoom, "dehumidifier")
+              toggleDevice(
+                selectedRoom,
+                "dehumidifier"
+              )
             }
             disabled={mode === "AUTO"}
             icon={<AirVent size={18} />}
@@ -82,12 +102,13 @@ export default function DeviceToggle() {
           <Toggle
             name="Exhaust Fan"
             state={
-              mode === "AUTO"
-                ? auto.exhaust
-                : currentRoom.exhaust.isOn
+              currentRoom.exhaust.isOn
             }
             onClick={() =>
-              toggleDevice(selectedRoom, "exhaust")
+              toggleDevice(
+                selectedRoom,
+                "exhaust"
+              )
             }
             disabled={mode === "AUTO"}
             icon={<Wind size={18} />}
@@ -109,7 +130,11 @@ function Toggle({
   return (
     <div
       className={`flex items-center justify-between p-4 rounded-xl transition-all
-      ${state ? "bg-indigo-500 text-white" : "bg-gray-100 dark:bg-gray-800"}
+      ${
+        state
+          ? "bg-indigo-500 text-white"
+          : "bg-gray-100 dark:bg-gray-800"
+      }
     `}
     >
 
@@ -119,7 +144,10 @@ function Toggle({
         </div>
 
         <div>
-          <p className="text-sm font-medium">{name}</p>
+          <p className="text-sm font-medium">
+            {name}
+          </p>
+
           <p className="text-xs opacity-70">
             {state ? "ON" : "OFF"}
           </p>
@@ -130,13 +158,25 @@ function Toggle({
         onClick={onClick}
         disabled={disabled}
         className={`w-12 h-6 rounded-full relative transition
-          ${state ? "bg-green-400" : "bg-gray-300"}
-          ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+          ${
+            state
+              ? "bg-green-400"
+              : "bg-gray-300"
+          }
+          ${
+            disabled
+              ? "opacity-50 cursor-not-allowed"
+              : ""
+          }
         `}
       >
         <span
           className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition
-            ${state ? "translate-x-6" : ""}
+            ${
+              state
+                ? "translate-x-6"
+                : ""
+            }
           `}
         />
       </button>

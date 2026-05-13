@@ -1,27 +1,46 @@
 "use client"
 
 import { create } from "zustand"
-import { persist, createJSONStorage } from "zustand/middleware"
+import {
+  persist,
+  createJSONStorage
+} from "zustand/middleware"
 
-import { Room } from "@/types/device"
+import {
+  Room,
+  DeviceMode,
+  DeviceType
+} from "@/types/device"
+
+import {
+  deviceService
+} from "@/services/deviceService"
 
 interface DeviceStore {
-
   rooms: Room[]
 
-  mode: "AUTO" | "MANUAL"
+  mode: DeviceMode
 
-  setMode: (mode: "AUTO" | "MANUAL") => void
+  setMode: (mode: DeviceMode) => void
 
   addRoom: (room: Room) => void
 
   deleteRoom: (index: number) => void
 
-  editRoom: (index: number, room: Room) => void
+  editRoom: (
+    index: number,
+    room: Room
+  ) => void
 
   toggleDevice: (
     roomName: string,
-    type: "dehumidifier" | "exhaust"
+    type: DeviceType
+  ) => void
+
+  syncAutoDevices: (
+    roomName: string,
+    humidity: number,
+    temperature: number
   ) => void
 }
 
@@ -49,7 +68,7 @@ const defaultRooms: Room[] = [
     exhaust: {
       enabled: false,
       isOn: false,
-      connectivity: "offline"
+      connectivity: "online"
     }
   },
   {
@@ -70,7 +89,7 @@ const defaultRooms: Room[] = [
     dehumidifier: {
       enabled: false,
       isOn: false,
-      connectivity: "offline"
+      connectivity: "online"
     },
     exhaust: {
       enabled: true,
@@ -80,63 +99,114 @@ const defaultRooms: Room[] = [
   }
 ]
 
-export const useDeviceStore = create<DeviceStore>()(
-  persist(
-    (set, get) => ({
+export const useDeviceStore =
+  create<DeviceStore>()(
+    persist(
+      (set, get) => ({
+        rooms: defaultRooms,
 
-      rooms: defaultRooms,
+        mode: "AUTO",
 
-      mode: "AUTO",
+        setMode: (mode) =>
+          set({
+            mode
+          }),
 
-      setMode: (mode) => set({ mode }),
+        addRoom: (room) => {
+          deviceService
+            .addRoom(
+              get().rooms,
+              room
+            )
+            .then((rooms) =>
+              set({
+                rooms
+              })
+            )
+        },
 
-      addRoom: (room) =>
-        set((state) => ({
-          rooms: [...state.rooms, room]
-        })),
+        deleteRoom: (index) => {
+          deviceService
+            .deleteRoom(
+              get().rooms,
+              index
+            )
+            .then((rooms) =>
+              set({
+                rooms
+              })
+            )
+        },
 
-      deleteRoom: (index) =>
-        set((state) => ({
-          rooms: state.rooms.filter((_, i) => i !== index)
-        })),
+        editRoom: (
+          index,
+          room
+        ) => {
+          deviceService
+            .editRoom(
+              get().rooms,
+              index,
+              room
+            )
+            .then((rooms) =>
+              set({
+                rooms
+              })
+            )
+        },
 
-      editRoom: (index, room) =>
-        set((state) => {
-          const updated = [...state.rooms]
-          updated[index] = room
-          return { rooms: updated }
-        }),
+        toggleDevice: (
+          roomName,
+          type
+        ) => {
+          deviceService
+            .toggleDevice(
+              get().rooms,
+              roomName,
+              type
+            )
+            .then((rooms) =>
+              set({
+                rooms
+              })
+            )
+        },
 
-/* FIX AUTO/MANUAL TOGGLE */
-      toggleDevice: (roomName, type) =>
-        set((state) => ({
-          rooms: state.rooms.map((room) =>
-            room.name === roomName
-              ? {
-                  ...room,
-                  [type]: {
-                    ...room[type],
-                    isOn: !room[type].isOn
-                  }
-                }
-              : room
-          )
-        }))
-    }),
-
-/* 🔥 IMPORTANT FIX: SAFE STORAGE (NO SSR ERROR) */
-    {
-      name: "mold_app_devices",
-      storage: createJSONStorage(() => {
-        if (typeof window !== "undefined") {
-          return localStorage
+        syncAutoDevices: (
+          roomName,
+          humidity,
+          temperature
+        ) => {
+          deviceService
+            .syncAutoDevices(
+              get().rooms,
+              get().mode,
+              roomName,
+              humidity,
+              temperature
+            )
+            .then((rooms) =>
+              set({
+                rooms
+              })
+            )
         }
-        return {
-          getItem: () => null,
-          setItem: () => {},
-          removeItem: () => {}
-        }
-      })
-    }
+      }),
+      {
+        name: "mold_app_devices",
+        storage: createJSONStorage(() => {
+          if (
+            typeof window !== "undefined"
+          ) {
+            return window.localStorage
+          }
+
+          return {
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {}
+          }
+        })
+      }
+    )
   )
-)

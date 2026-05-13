@@ -1,6 +1,9 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import {
+  useEffect,
+  useRef
+} from "react"
 
 import { useSensorStore } from "@/store/useSensorStore"
 import { useNotificationStore } from "@/store/useNotificationStore"
@@ -17,163 +20,195 @@ import MoldRiskCard from "@/components/dashboard/MoldRiskCard"
 import { getSensorHubs } from "@/services/sensorService"
 
 export default function Dashboard() {
+  const addNotification =
+    useNotificationStore(
+      (state) =>
+        state.addNotification
+    )
 
-  const addNotification = useNotificationStore(
-    (state) => state.addNotification
-  )
+  const addActivity =
+    useActivityStore(
+      (state) =>
+        state.addActivity
+    )
 
-  const addActivity = useActivityStore(
-    (state) => state.addActivity
-  )
-
-  const setSensorData = useSensorStore(
-    (state) => state.setSensorData
-  )
+  const setSensorData =
+    useSensorStore(
+      (state) =>
+        state.setSensorData
+    )
 
   const {
     selectedRoom,
     setSelectedRoom
   } = useRoomStore()
 
-  const rooms = useDeviceStore(
-    (state) => state.rooms
-  )
+  const rooms =
+    useDeviceStore(
+      (state) =>
+        state.rooms
+    )
 
-  const previousHumidityRef = useRef(false)
-  const previousTempRef = useRef(false)
-  const previousLightRef = useRef(false)
+  const syncAutoDevices =
+    useDeviceStore(
+      (state) =>
+        state.syncAutoDevices
+    )
+
+  const previousHumidityRef =
+    useRef(false)
+
+  const previousTempRef =
+    useRef(false)
+
+  const previousLightRef =
+    useRef(false)
 
   useEffect(() => {
+    const fetchFromSupabase =
+      async () => {
+        try {
+          await fetch("/api/sensors")
 
-    const fetchFromSupabase = async () => {
+          const data =
+            await getSensorHubs()
 
-      try {
-
-        await fetch("/api/sensors")
-
-        const data = await getSensorHubs()
-
-        console.log("DATA SUPABASE:", data)
-
-        if (data.length > 0) {
-
-          const currentRoomData = data.find(
-            (item) => item.location === selectedRoom
+          console.log(
+            "DATA SUPABASE:",
+            data
           )
 
-          if (!currentRoomData) return
+          if (data.length > 0) {
+            const currentRoomData =
+              data.find(
+                (item) =>
+                  item.location ===
+                  selectedRoom
+              )
 
-          setSensorData(currentRoomData)
+            if (!currentRoomData) return
 
-          const humidity = currentRoomData.humidity
-          const temperature = currentRoomData.temperature
-          const light = currentRoomData.light
+            setSensorData(
+              currentRoomData
+            )
 
-          // HUMIDITY ALERT
-          if (
-            humidity > 80 &&
-            !previousHumidityRef.current
-          ) {
+            syncAutoDevices(
+              selectedRoom,
+              currentRoomData.humidity,
+              currentRoomData.temperature
+            )
 
-            addActivity({
-              title: `[${selectedRoom}] High humidity detected`,
-              description: `Humidity reached ${humidity}%`,
-              type: "alert"
-            })
+            const humidity =
+              currentRoomData.humidity
 
-            addNotification({
-              title: `[${selectedRoom}] High Mold Risk`,
-              message: `Humidity reached ${humidity}%`,
-              type: "alert"
-            })
+            const temperature =
+              currentRoomData.temperature
 
-            previousHumidityRef.current = true
+            const light =
+              currentRoomData.light
+
+            if (
+              humidity > 80 &&
+              !previousHumidityRef.current
+            ) {
+              addActivity({
+                title: `[${selectedRoom}] High humidity detected`,
+                description: `Humidity reached ${humidity}%`,
+                type: "alert"
+              })
+
+              addNotification({
+                title: `[${selectedRoom}] High Mold Risk`,
+                message: `Humidity reached ${humidity}%`,
+                type: "alert"
+              })
+
+              previousHumidityRef.current =
+                true
+            }
+
+            if (humidity <= 80) {
+              previousHumidityRef.current =
+                false
+            }
+
+            if (
+              temperature > 30 &&
+              !previousTempRef.current
+            ) {
+              addActivity({
+                title: `[${selectedRoom}] High temperature detected`,
+                description: `Temperature reached ${temperature}°C`,
+                type: "alert"
+              })
+
+              addNotification({
+                title: `[${selectedRoom}] High Temperature`,
+                message: `Temperature reached ${temperature}°C`,
+                type: "warning"
+              })
+
+              previousTempRef.current =
+                true
+            }
+
+            if (temperature <= 30) {
+              previousTempRef.current =
+                false
+            }
+
+            if (
+              light > 700 &&
+              !previousLightRef.current
+            ) {
+              addActivity({
+                title: `[${selectedRoom}] High light exposure`,
+                description: `Lux intensity reached ${light}`,
+                type: "alert"
+              })
+
+              addNotification({
+                title: `[${selectedRoom}] High Light Exposure`,
+                message: `Lux intensity reached ${light}`,
+                type: "warning"
+              })
+
+              previousLightRef.current =
+                true
+            }
+
+            if (light <= 700) {
+              previousLightRef.current =
+                false
+            }
           }
-
-          if (humidity <= 80) {
-            previousHumidityRef.current = false
-          }
-
-          // TEMPERATURE ALERT
-          if (
-            temperature > 30 &&
-            !previousTempRef.current
-          ) {
-
-            addActivity({
-              title: `[${selectedRoom}] High temperature detected`,
-              description: `Temperature reached ${temperature}°C`,
-              type: "alert"
-            })
-
-            addNotification({
-              title: `[${selectedRoom}] High Temperature`,
-              message: `Temperature reached ${temperature}°C`,
-              type: "warning"
-            })
-
-            previousTempRef.current = true
-          }
-
-          if (temperature <= 30) {
-            previousTempRef.current = false
-          }
-
-          // LIGHT ALERT
-          if (
-            light > 700 &&
-            !previousLightRef.current
-          ) {
-
-            addActivity({
-              title: `[${selectedRoom}] High light exposure`,
-              description: `Lux intensity reached ${light}`,
-              type: "alert"
-            })
-
-            addNotification({
-              title: `[${selectedRoom}] High Light Exposure`,
-              message: `Lux intensity reached ${light}`,
-              type: "warning"
-            })
-
-            previousLightRef.current = true
-          }
-
-          if (light <= 700) {
-            previousLightRef.current = false
-          }
-
+        } catch (error) {
+          console.error(
+            "ERROR FETCH SUPABASE:",
+            error
+          )
         }
-
-      } catch (error) {
-
-        console.error(
-          "ERROR FETCH SUPABASE:",
-          error
-        )
-
       }
-    }
 
     fetchFromSupabase()
 
-    const interval = setInterval(
-      fetchFromSupabase,
-      5000
-    )
+    const interval =
+      setInterval(
+        fetchFromSupabase,
+        5000
+      )
 
-    return () => clearInterval(interval)
-
+    return () =>
+      clearInterval(interval)
   }, [
     selectedRoom,
     addActivity,
     addNotification,
-    setSensorData
+    setSensorData,
+    syncAutoDevices
   ])
 
   return (
-
     <div className="space-y-6">
 
       <div className="flex justify-between items-center">
@@ -185,7 +220,9 @@ export default function Dashboard() {
         <select
           value={selectedRoom}
           onChange={(e) =>
-            setSelectedRoom(e.target.value)
+            setSelectedRoom(
+              e.target.value
+            )
           }
           className="
             bg-white dark:bg-gray-800
@@ -201,18 +238,15 @@ export default function Dashboard() {
             focus:ring-indigo-500
           "
         >
-
           {rooms.map((room, i) => (
-
             <option
               key={i}
+              value={room.name}
               className="bg-white dark:bg-gray-800"
             >
               {room.name}
             </option>
-
           ))}
-
         </select>
 
       </div>
