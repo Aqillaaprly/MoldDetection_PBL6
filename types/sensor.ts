@@ -15,6 +15,7 @@ export interface SensorHub {
   humidity: number
   temperature: number
   light: number
+  is_online: boolean
   sensorType: string
   currentValue: string
   status: "ACTIVE" | "ALERT" | "INACTIVE"

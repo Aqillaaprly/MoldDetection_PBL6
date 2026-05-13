@@ -76,6 +76,8 @@ export const getSensorHubs =
 
               location: room.name,
 
+              is_online: false,
+
               sensorType: "DHT22",
 
               temperature: 0,
@@ -103,6 +105,8 @@ export const getSensorHubs =
             name: `HUB-${roomId}`,
 
             location: room.name,
+
+            is_online: true,
 
             sensorType: "DHT22",
 

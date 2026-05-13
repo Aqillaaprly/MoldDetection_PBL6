@@ -77,13 +77,13 @@ export default function AnalyticsChart() {
 
   return (
 
-<div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 w-full h-[300px]">
+<div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
 
   <h3 className="font-semibold text-lg mb-6">
     Humidity Analytics
   </h3>
 
-  <ResponsiveContainer width="100%" height="100%">
+  <ResponsiveContainer width="100%" height={260}>
 
     <LineChart data={data}>
 
