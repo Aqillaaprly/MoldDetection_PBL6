@@ -90,7 +90,7 @@ export default function RoomCard({
 
         <div>
           <p className="text-2xl font-bold">
-            {hub.light}
+            {hub.light} lux
           </p>
 
           <p className="text-[11px] text-gray-400">
