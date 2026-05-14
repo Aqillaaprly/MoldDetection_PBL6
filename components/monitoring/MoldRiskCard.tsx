@@ -1,68 +1,113 @@
 "use client"
 
-import { AlertTriangle } from "lucide-react"
+import {
+  useEffect,
+  useState
+} from "react"
 
-import { useSensorStore } from "@/store/useSensorStore"
+import {
+  AlertTriangle
+} from "lucide-react"
 
 export default function MoldRiskCard() {
 
-  const {
-    humidity,
-    temperature,
-    light
-  } = useSensorStore()
+  const [risk, setRisk] =
+    useState(0)
 
-  const lightPenalty =
-    light < 300 ? 15 : 0
+  const [status, setStatus] =
+    useState("LOW")
 
-  const risk = Math.min(
-    Math.round(
-      humidity * 0.6 +
-      temperature * 0.25 +
-      lightPenalty
-    ),
-    100
-  )
+  useEffect(() => {
 
-  let status = "LOW"
+    const fetchMRI =
+      async () => {
 
-  let statusColor = "text-green-600"
+        try {
 
-  let barColor = "bg-green-600"
+          const res =
+            await fetch("/api/mri")
 
-  if (risk >= 80) {
+          const data =
+            await res.json()
 
-    status = "HIGH"
+          setRisk(data.mri)
 
-    statusColor = "text-red-600"
+          setStatus(data.status)
 
-    barColor = "bg-red-600"
+        } catch (error) {
 
-  } else if (risk >= 70) {
+          console.error(
+            "Failed to fetch MRI:",
+            error
+          )
 
-    status = "MEDIUM"
+        }
 
-    statusColor = "text-yellow-500"
+      }
 
-    barColor = "bg-yellow-500"
+    fetchMRI()
+
+    const interval =
+      setInterval(fetchMRI, 5000)
+
+    return () =>
+      clearInterval(interval)
+
+  }, [])
+
+  let statusColor =
+    "text-green-600"
+
+  let barColor =
+    "bg-green-600"
+
+  if (status === "HIGH") {
+
+    statusColor =
+      "text-red-600"
+
+    barColor =
+      "bg-red-600"
+
+  } else if (
+    status === "MEDIUM"
+  ) {
+
+    statusColor =
+      "text-yellow-500"
+
+    barColor =
+      "bg-yellow-500"
 
   }
 
   return (
 
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+    <div className="
+      bg-white dark:bg-gray-900
+      p-6 rounded-2xl shadow-sm
+      border border-gray-100
+      dark:border-gray-800
+    ">
 
-      {/* Header */}
-      <div className="flex justify-between items-start mb-4">
+      <div className="
+        flex justify-between
+        items-start mb-4
+      ">
 
         <div>
 
-          <h3 className="font-semibold text-lg">
+          <h3 className="
+            font-semibold text-lg
+          ">
             Mold Risk Level
           </h3>
 
-          <p className="text-xs text-gray-400">
-            Atmospheric calculation based on humidity, temperature, and light
+          <p className="
+            text-xs text-gray-400
+          ">
+            MRI calculated based on
+            environmental conditions
           </p>
 
         </div>
@@ -74,27 +119,43 @@ export default function MoldRiskCard() {
 
       </div>
 
-      {/* Risk label */}
-      <div className="flex justify-between items-end mb-3">
+      <div className="
+        flex justify-between
+        items-end mb-3
+      ">
 
         <h2
-          className={`text-3xl font-bold ${statusColor}`}
+          className={`
+            text-3xl font-bold
+            ${statusColor}
+          `}
         >
           {status}
         </h2>
 
-        <span className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+        <span className="
+          text-lg font-semibold
+          text-gray-700
+          dark:text-gray-200
+        ">
           {risk}%
         </span>
 
       </div>
 
-      {/* Progress bar */}
-      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+      <div className="
+        w-full h-3 bg-gray-200
+        rounded-full overflow-hidden
+      ">
 
         <div
-          className={`h-full rounded-full ${barColor}`}
-          style={{ width: `${risk}%` }}
+          className={`
+            h-full rounded-full
+            ${barColor}
+          `}
+          style={{
+            width: `${risk}%`
+          }}
         />
 
       </div>

@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 
 import { SensorHub } from "@/types/sensor"
+import { calculateMRI, getMRIStatus } from "@/lib/calculateMRI"
 
 export type RiskLevel =
   | "HIGH RISK"
@@ -18,14 +19,16 @@ export type RiskLevel =
 export function getRiskLevel(hub: SensorHub): RiskLevel {
   if (!hub.is_online) return "OFFLINE"
 
-  if (hub.humidity > 85 || hub.temperature > 31) {
-    return "HIGH RISK"
-  }
+  const score = calculateMRI({
+    humidity: hub.humidity,
+    temperature: hub.temperature,
+    light: hub.light
+  })
 
-  if (hub.humidity > 75 || hub.temperature > 29) {
-    return "MEDIUM RISK"
-  }
+  const status = getMRIStatus(score)
 
+  if (status === "HIGH") return "HIGH RISK"
+  if (status === "MEDIUM") return "MEDIUM RISK"
   return "NORMAL"
 }
 

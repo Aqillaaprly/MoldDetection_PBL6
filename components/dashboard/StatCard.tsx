@@ -6,7 +6,6 @@ type Props = {
   label: string
   value: string | number
   sub: string
-  highlight?: string
 }
 
 export default function StatCard({
@@ -14,8 +13,7 @@ export default function StatCard({
   iconBg,
   label,
   value,
-  sub,
-  highlight
+  sub
 }: Props) {
   return (
     <div
@@ -23,11 +21,7 @@ export default function StatCard({
         "bg-white dark:bg-gray-900",
         "rounded-2xl border border-gray-100 dark:border-gray-800",
         "shadow-sm",
-
-        // desktop
         "sm:px-5 sm:py-4",
-
-        // mobile compact
         "px-3 py-3"
       )}
     >
@@ -37,13 +31,8 @@ export default function StatCard({
         <div
           className={clsx(
             "rounded-xl flex items-center justify-center shrink-0",
-
-            // mobile
             "w-9 h-9",
-
-            // desktop
             "sm:w-11 sm:h-11",
-
             iconBg
           )}
         >
@@ -63,25 +52,10 @@ export default function StatCard({
             {value}
           </p>
 
-          {/* Desktop only sub text */}
-          <div className="hidden sm:block">
-            {highlight ? (
-              <p className="text-xs mt-0.5">
-                <span className="text-green-500 font-medium">
-                  {highlight}
-                </span>
-
-                <span className="text-gray-400">
-                  {" "}
-                  {sub}
-                </span>
-              </p>
-            ) : (
-              <p className="text-xs text-gray-400 mt-0.5">
-                {sub}
-              </p>
-            )}
-          </div>
+          {/* Sub */}
+          <p className="hidden sm:block text-xs text-gray-400 mt-0.5">
+            {sub}
+          </p>
 
         </div>
       </div>

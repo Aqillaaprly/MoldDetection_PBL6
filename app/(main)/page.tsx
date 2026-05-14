@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation"
 import {
   Home,
   AlertTriangle,
-  Droplet,
-  Cpu,
   LayoutGrid,
   List
 } from "lucide-react"
@@ -76,20 +74,6 @@ export default function DashboardOverview() {
 
   const highRiskCount = hubs.filter(
     (h) => getRiskLevel(h) === "HIGH RISK"
-  ).length
-
-  const avgHumidity =
-    totalRooms > 0
-      ? Math.round(
-          hubs.reduce(
-            (sum, hub) => sum + hub.humidity,
-            0
-          ) / totalRooms
-        )
-      : 0
-
-  const devicesOnline = hubs.filter(
-    (h) => h.is_online
   ).length
 
   // ─── Filtered Data ────────────────────────────────────
@@ -172,65 +156,31 @@ export default function DashboardOverview() {
 
       {/* ─── STAT CARD ────────────────────────── */}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex gap-4">
 
-        <StatCard
-          icon={
-            <Home
-              size={18}
-              className="text-indigo-500"
-            />
-          }
-          iconBg="bg-indigo-50 dark:bg-indigo-900/30"
-          label="Total Rooms"
-          value={totalRooms}
-          sub="Monitored"
-        />
+        <div className="flex items-center gap-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm px-6 py-4 min-w-[200px]">
+          <div className="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+            <Home size={20} className="text-indigo-500" />
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 font-medium">Total Rooms</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">{totalRooms}</p>
+            <p className="text-xs text-gray-400 mt-0.5">Monitored</p>
+          </div>
+        </div>
 
-        <StatCard
-          icon={
-            <AlertTriangle
-              size={18}
-              className="text-red-500"
-            />
-          }
-          iconBg="bg-red-50 dark:bg-red-900/30"
-          label="High Risk Rooms"
-          value={highRiskCount}
-          sub={`${totalRooms > 0
-            ? (
-                (highRiskCount / totalRooms) *
-                100
-              ).toFixed(0)
-            : 0}% of total`}
-        />
-
-        <StatCard
-          icon={
-            <Droplet
-              size={18}
-              className="text-cyan-500"
-            />
-          }
-          iconBg="bg-cyan-50 dark:bg-cyan-900/30"
-          label="Average Humidity"
-          value={`${avgHumidity}%`}
-          sub="from yesterday"
-          highlight="+4%"
-        />
-
-        <StatCard
-          icon={
-            <Cpu
-              size={18}
-              className="text-green-500"
-            />
-          }
-          iconBg="bg-green-50 dark:bg-green-900/30"
-          label="Devices Online"
-          value={devicesOnline}
-          sub={`of ${totalRooms} devices`}
-        />
+        <div className="flex items-center gap-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm px-6 py-4 min-w-[200px]">
+          <div className="w-11 h-11 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+            <AlertTriangle size={20} className="text-red-500" />
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 font-medium">High Risk Rooms</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">{highRiskCount}</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {totalRooms > 0 ? ((highRiskCount / totalRooms) * 100).toFixed(0) : 0}% of total
+            </p>
+          </div>
+        </div>
 
       </div>
 
