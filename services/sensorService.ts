@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase } from "@/lib/supabase"
 import { SensorHub, MetricData } from "@/types/sensor"
 import { useDeviceStore } from "@/store/useDeviceStore"
 
@@ -14,18 +14,28 @@ interface SensorRow {
 export const getSensorHubs = async (): Promise<SensorHub[]> => {
   try {
     const res = await fetch("/api/sensors")
+
+    if (!res.ok) {
+      console.error("GET /api/sensors gagal:", res.status, res.statusText)
+      return []
+    }
+
     const data = await res.json()
 
-    console.log("API RESPONSE:", data)
-
     if (!Array.isArray(data)) {
-      console.error("DATA BUKAN ARRAY:", data)
+      console.error("Response bukan array:", data)
       return []
     }
 
     const rooms = useDeviceStore.getState().rooms
 
-    const latestPerRoom = rooms.map((room, index) => {
+    // Jika rooms belum diinisialisasi, kembalikan array kosong
+    if (!rooms || rooms.length === 0) {
+      console.warn("Rooms belum tersedia di store")
+      return []
+    }
+
+    const latestPerRoom: SensorHub[] = rooms.map((room, index) => {
       const roomId = index + 1
 
       const roomData = (data as SensorRow[]).filter(
@@ -44,10 +54,10 @@ export const getSensorHubs = async (): Promise<SensorHub[]> => {
           temperature: 0,
           humidity: 0,
           light: 0,
-          currentValue: `0°C / 0% RH`,
+          currentValue: "0°C / 0% RH",
           status: "ACTIVE" as const,
           battery: 90,
-          lastSync: "No Data"
+          lastSync: "No Data",
         }
       }
 
@@ -61,16 +71,15 @@ export const getSensorHubs = async (): Promise<SensorHub[]> => {
         humidity: latest.humidity,
         light: latest.light,
         currentValue: `${latest.temperature}°C / ${latest.humidity}% RH`,
-        status: latest.humidity > 70 ? "ALERT" as const : "ACTIVE" as const,
+        status: latest.humidity > 70 ? ("ALERT" as const) : ("ACTIVE" as const),
         battery: 90,
-        lastSync: "Just Now"
+        lastSync: "Just Now",
       }
     })
 
     return latestPerRoom
-
   } catch (error) {
-    console.error("Fetch API error:", error)
+    console.error("getSensorHubs error:", error)
     return []
   }
 }
@@ -80,6 +89,9 @@ export const getTrendData = async (location: string): Promise<MetricData[]> => {
   if (!location) return []
 
   const rooms = useDeviceStore.getState().rooms
+
+  if (!rooms || rooms.length === 0) return []
+
   const roomIndex = rooms.findIndex((r) => r.name === location)
 
   if (roomIndex < 0) return []
@@ -87,52 +99,39 @@ export const getTrendData = async (location: string): Promise<MetricData[]> => {
   const roomId = roomIndex + 1
 
   const { data, error } = await supabase
-    .from('sensor_data')
-    .select('*')
-    .eq('room_id', roomId)
-    .order('created_at', { ascending: true })
+    .from("sensor_data")
+    .select("*")
+    .eq("room_id", roomId)
+    .order("created_at", { ascending: true })
     .limit(100)
 
   if (error) {
-    console.error('Error fetching trend data:', error)
+    console.error("Error fetching trend data:", error)
     return []
   }
 
   if (!data || data.length === 0) {
-    return [
-      {
-        time: "00:00",
-        humidity: 0,
-        temperature: 0,
-        light: 0
-      }
-    ]
+    return [{ time: "00:00", humidity: 0, temperature: 0, light: 0 }]
   }
 
   // Group per 1 menit, ambil rata-rata
-  const grouped = new Map<string, {
-    humidity: number[]
-    temperature: number[]
-    light: number[]
-  }>()
+  const grouped = new Map<
+    string,
+    { humidity: number[]; temperature: number[]; light: number[] }
+  >()
 
   data.forEach((item) => {
     const date = new Date(item.created_at)
 
-    // Bulatkan ke 1 menit
     date.setSeconds(0, 0)
 
     const key = date.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit'
+      hour: "2-digit",
+      minute: "2-digit",
     })
 
     if (!grouped.has(key)) {
-      grouped.set(key, {
-        humidity: [],
-        temperature: [],
-        light: []
-      })
+      grouped.set(key, { humidity: [], temperature: [], light: [] })
     }
 
     grouped.get(key)!.humidity.push(item.humidity)
@@ -147,7 +146,7 @@ export const getTrendData = async (location: string): Promise<MetricData[]> => {
     time,
     humidity: avg(values.humidity),
     temperature: avg(values.temperature),
-    light: avg(values.light)
+    light: avg(values.light),
   }))
 }
 
@@ -155,5 +154,3 @@ export const getTrendData = async (location: string): Promise<MetricData[]> => {
 export const refreshSensorData = async (): Promise<SensorHub[]> => {
   return await getSensorHubs()
 }
-
-console.log("URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
