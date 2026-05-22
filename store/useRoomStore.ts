@@ -1,15 +1,21 @@
 import { create } from "zustand"
 
 interface RoomState {
+
   selectedRoom: string
-  setSelectedRoom: (room: string) => void
+
+  setSelectedRoom: (
+    room: string
+  ) => void
 }
 
-export const useRoomStore = create<RoomState>((set) => ({
-  selectedRoom: "Living Room",
+export const useRoomStore =
+  create<RoomState>((set) => ({
 
-  setSelectedRoom: (room) =>
-    set({
-      selectedRoom: room
-    })
-}))
+    selectedRoom: "Living Room",
+
+    setSelectedRoom: (room) =>
+      set({
+        selectedRoom: room
+      })
+  }))

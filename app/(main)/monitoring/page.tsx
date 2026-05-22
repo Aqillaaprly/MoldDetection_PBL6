@@ -1,213 +1,298 @@
 "use client"
 
-import { useState, useEffect } from "react"
-
 import {
-  Droplet,
-  Thermometer,
-  Lightbulb
-} from "lucide-react"
+  useEffect,
+  useRef
+} from "react"
 
-import MonitoringHeader from "@/components/monitoring/MonitoringHeader"
-import MetricCard from "@/components/monitoring/MetricCard"
-import TrendChart from "@/components/monitoring/TrendChart"
-import SensorHubsTable from "@/components/monitoring/SensorHubsTable"
-
-import {
-  getSensorHubs,
-  getTrendData
-} from "@/services/sensorService"
-
-import {
-  SensorHub,
-  MetricData
-} from "@/types/sensor"
-
+import { useSensorStore } from "@/store/useSensorStore"
+import { useNotificationStore } from "@/store/useNotificationStore"
+import { useActivityStore } from "@/store/useActivityStore"
 import { useRoomStore } from "@/store/useRoomStore"
+import { useDeviceStore } from "@/store/useDeviceStore"
 
-const roomMap: Record<string, number> = {
+import SensorCard from "@/components/monitoring/SensorCard"
+import DeviceToggle from "@/components/monitoring/DeviceToggle"
+import ActivityTimeline from "@/components/monitoring/ActivityTimeline"
+import AnalyticsChart from "@/components/monitoring/AnalyticsChart"
+import MoldRiskCard from "@/components/monitoring/MoldRiskCard"
 
-  "Living Room": 1,
+import { getSensorHubs } from "@/services/sensorService"
 
-  "Bedroom 1": 2,
+export default function Monitoring() {
 
-  "Bedroom 2": 3,
+  const addNotification =
+    useNotificationStore(
+      (state) =>
+        state.addNotification
+    )
 
-  "Kitchen": 4
+  const addActivity =
+    useActivityStore(
+      (state) =>
+        state.addActivity
+    )
 
-}
+  const setSensorData =
+    useSensorStore(
+      (state) =>
+        state.setSensorData
+    )
 
-export default function MonitoringPage() {
+  const {
+    selectedRoom,
+    setSelectedRoom
+  } = useRoomStore()
 
-  const { selectedRoom } = useRoomStore()
+  const rooms =
+    useDeviceStore(
+      (state) =>
+        state.rooms
+    )
 
-  const roomId = roomMap[selectedRoom] ?? 1
+  const syncAutoDevices =
+    useDeviceStore(
+      (state) =>
+        state.syncAutoDevices
+    )
 
-  const [sensorHubs, setSensorHubs] = useState<
-    SensorHub[]
-  >([])
+  const previousHumidityRef =
+    useRef(false)
 
-  const [trendData, setTrendData] = useState<
-    MetricData[]
-  >([])
+  const previousTempRef =
+    useRef(false)
 
-  const [isLoading, setIsLoading] = useState(true)
+  const previousLightRef =
+    useRef(false)
 
   useEffect(() => {
 
-    const loadData = async () => {
+    const fetchFromSupabase =
+      async () => {
 
-      try {
+        try {
 
-        await fetch("/api/sensors")
+          await fetch("/api/sensors")
 
-        const [hubs, trends] = await Promise.all([
+          const data =
+            await getSensorHubs()
 
-          getSensorHubs(),
+          console.log(
+            "DATA SUPABASE:",
+            data
+          )
 
-          getTrendData(roomId)
+          if (data.length > 0) {
 
-        ])
+            const currentRoomData =
+              data.find(
+                (item) =>
+                  item.location ===
+                  selectedRoom
+              )
 
-        setSensorHubs(hubs)
+            if (!currentRoomData) return
 
-        setTrendData(trends)
+            setSensorData(
+              currentRoomData
+            )
 
-      } catch (error) {
+            syncAutoDevices(
+              selectedRoom,
+              currentRoomData.humidity,
+              currentRoomData.temperature
+            )
 
-        console.error(
-          "Error loading monitoring data:",
-          error
-        )
+            const humidity =
+              currentRoomData.humidity
 
-      } finally {
+            const temperature =
+              currentRoomData.temperature
 
-        setIsLoading(false)
+            const light =
+              currentRoomData.light
 
+            // HUMIDITY ALERT
+            if (
+              humidity > 80 &&
+              !previousHumidityRef.current
+            ) {
+
+              addActivity({
+                title: `[${selectedRoom}] High humidity detected`,
+                description: `Humidity reached ${humidity}%`,
+                type: "alert"
+              })
+
+              addNotification({
+                title: `[${selectedRoom}] High Mold Risk`,
+                message: `Humidity reached ${humidity}%`,
+                type: "alert"
+              })
+
+              previousHumidityRef.current =
+                true
+            }
+
+            if (humidity <= 80) {
+              previousHumidityRef.current =
+                false
+            }
+
+            // TEMPERATURE ALERT
+            if (
+              temperature > 30 &&
+              !previousTempRef.current
+            ) {
+
+              addActivity({
+                title: `[${selectedRoom}] High temperature detected`,
+                description: `Temperature reached ${temperature}°C`,
+                type: "alert"
+              })
+
+              addNotification({
+                title: `[${selectedRoom}] High Temperature`,
+                message: `Temperature reached ${temperature}°C`,
+                type: "warning"
+              })
+
+              previousTempRef.current =
+                true
+            }
+
+            if (temperature <= 30) {
+              previousTempRef.current =
+                false
+            }
+
+            // LIGHT ALERT
+            if (
+              light > 700 &&
+              !previousLightRef.current
+            ) {
+
+              addActivity({
+                title: `[${selectedRoom}] High light exposure`,
+                description: `Lux intensity reached ${light}`,
+                type: "alert"
+              })
+
+              addNotification({
+                title: `[${selectedRoom}] High Light Exposure`,
+                message: `Lux intensity reached ${light}`,
+                type: "warning"
+              })
+
+              previousLightRef.current =
+                true
+            }
+
+            if (light <= 700) {
+              previousLightRef.current =
+                false
+            }
+
+          }
+
+        } catch (error) {
+
+          console.error(
+            "ERROR FETCH SUPABASE:",
+            error
+          )
+
+        }
       }
-    }
 
-    loadData()
+    fetchFromSupabase()
 
-    const interval = setInterval(
-      loadData,
-      5000
-    )
+    const interval =
+      setInterval(
+        fetchFromSupabase,
+        5000
+      )
 
-    return () => clearInterval(interval)
+    return () =>
+      clearInterval(interval)
 
-  }, [roomId])
+  }, [
+    selectedRoom,
+    addActivity,
+    addNotification,
+    setSensorData,
+    syncAutoDevices
+  ])
 
-  const metrics = {
-  humidity:
-    trendData[0]?.humidity ?? 0,
-  temperature:
-    trendData[0]?.temperature ?? 0,
-  light:
-    trendData[0]?.light ?? 0
-  }
+  return (
 
-  if (isLoading) {
+    <div className="space-y-6">
 
-    return (
+      <div className="flex justify-between items-center">
 
-      <div className="flex items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Monitoring
+        </h1>
 
-        <div className="text-center">
+        <select
+          value={selectedRoom}
+          onChange={(e) =>
+            setSelectedRoom(
+              e.target.value
+            )
+          }
+          className="
+            bg-white dark:bg-gray-800
+            text-gray-700 dark:text-gray-200
+            border border-gray-200 dark:border-gray-700
+            rounded-xl
+            px-4 py-2
+            text-sm
+            font-medium
+            shadow-sm
+            focus:outline-none
+            focus:ring-2
+            focus:ring-indigo-500
+          "
+        >
 
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-700 border-t-indigo-500"></div>
+          {rooms.map((room, i) => (
 
-          <p className="mt-4 text-gray-400">
-            Loading monitoring data...
-          </p>
+            <option
+              key={i}
+              value={room.name}
+              className="bg-white dark:bg-gray-800"
+            >
+              {room.name}
+            </option>
+
+          ))}
+
+        </select>
+
+      </div>
+
+      <SensorCard />
+
+      <div className="grid lg:grid-cols-3 gap-6">
+
+        <div className="lg:col-span-2 space-y-6">
+
+          <AnalyticsChart />
+
+          <DeviceToggle />
+
+        </div>
+
+        <div className="space-y-6">
+
+          <MoldRiskCard />
+
+          <ActivityTimeline />
 
         </div>
 
       </div>
-    )
-  }
-
-  return (
-
-    <div className="space-y-8 pb-8">
-
-      {/* Header */}
-      <MonitoringHeader
-        sensorStatus="online"
-        lastUpdate="Just now"
-      />
-
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        <MetricCard
-          title="Relative Humidity"
-          value={metrics.humidity}
-          unit="%"
-          status={
-            metrics.humidity > 70
-              ? "HIGH HUMIDITY"
-              : "OPTIMAL RANGE"
-          }
-          icon={<Droplet size={32} />}
-          iconColor="text-cyan-500"
-        />
-
-        <MetricCard
-          title="Ambient Temp"
-          value={metrics.temperature}
-          unit="°C"
-          status={
-            metrics.temperature > 28
-              ? "HOT"
-              : "STABLE"
-          }
-          icon={<Thermometer size={32} />}
-          iconColor="text-orange-500"
-        />
-
-        <MetricCard
-          title="Lux Intensity"
-          value={metrics.light}
-          unit=""
-          status={
-            metrics.light > 600
-              ? "HIGH EXPOSURE"
-              : "NORMAL"
-          }
-          icon={<Lightbulb size={32} />}
-          iconColor="text-yellow-500"
-        />
-
-      </div>
-
-      {/* Trend Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <TrendChart
-          title="Humidity Trend"
-          data={trendData}
-          dataKey="humidity"
-        />
-
-        <TrendChart
-          title="Temperature Trend"
-          data={trendData}
-          dataKey="temperature"
-        />
-
-        <TrendChart
-          title="Light Trend"
-          data={trendData}
-          dataKey="light"
-        />
-
-      </div>
-
-      {/* Sensor Hubs Table */}
-      <SensorHubsTable
-        data={sensorHubs}
-      />
 
     </div>
   )

@@ -1,231 +1,277 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { useSensorStore } from "@/store/useSensorStore"
-import { useNotificationStore } from "@/store/useNotificationStore"
-import { useActivityStore } from "@/store/useActivityStore"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+
+import {
+  Home,
+  AlertTriangle,
+  LayoutGrid,
+  List,
+} from "lucide-react"
+
+import clsx from "clsx"
+
 import { useRoomStore } from "@/store/useRoomStore"
-
-import SensorCard from "@/components/dashboard/SensorCard"
-import DeviceToggle from "@/components/dashboard/DeviceToggle"
-import ActivityTimeline from "@/components/dashboard/ActivityTimeline"
-import AnalyticsChart from "@/components/dashboard/AnalyticsChart"
-import MoldRiskCard from "@/components/dashboard/MoldRiskCard"
-
 import { getSensorHubs } from "@/services/sensorService"
+import { SensorHub } from "@/types/sensor"
 
-const roomMap: Record<string, number> = {
-  "Living Room": 1,
-  "Bedroom 1": 2,
-  "Bedroom 2": 3,
-  "Kitchen": 4
-}
+import RoomCard from "@/components/dashboard/RoomCard"
+import RoomRow from "@/components/dashboard/RoomRow"
+import MobileRoomCard from "@/components/dashboard/MobileRoomCard"
 
-export default function Dashboard() {
+import { getRiskLevel } from "@/components/dashboard/roomHelpers"
 
-  const addNotification = useNotificationStore(
-    (state) => state.addNotification
-  )
+type FilterTab =
+  | "All Rooms"
+  | "High Risk"
+  | "Medium Risk"
+  | "Normal"
+  | "Offline"
 
-  const addActivity = useActivityStore(
-    (state) => state.addActivity
-  )
+type ViewMode = "grid" | "list"
 
-  const setSensorData = useSensorStore(
-    (state) => state.setSensorData
-  )
+export default function DashboardOverview() {
+  const router = useRouter()
 
-  const {
-    selectedRoom,
-    setSelectedRoom
-  } = useRoomStore()
+  const { setSelectedRoom } = useRoomStore()
 
-  const roomId = roomMap[selectedRoom]
+  const [hubs, setHubs] = useState<SensorHub[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const previousHumidityRef = useRef(false)
-  const previousTempRef = useRef(false)
-  const previousLightRef = useRef(false)
+  const [filter, setFilter] = useState<FilterTab>("All Rooms")
+  const [viewMode, setViewMode] = useState<ViewMode>("grid")
 
   useEffect(() => {
-
-    const fetchFromSupabase = async () => {
-
+    const load = async () => {
       try {
-
-        // generate + insert data
-        await fetch("/api/sensors")
-
-        // ambil data terbaru berdasarkan room
         const data = await getSensorHubs()
-
-        console.log("DATA SUPABASE:", data)
-
-        if (data.length > 0) {
-
-          const currentRoomData = data.find(
-            (item) => item.location === selectedRoom
-          )
-
-          if (!currentRoomData) return
-
-          setSensorData(currentRoomData)
-
-          const humidity = currentRoomData.humidity
-
-          const temperature = currentRoomData.temperature
-
-          const light = currentRoomData.light
-          
-          // HUMIDITY TRIGGER
-          if (humidity > 80 && !previousHumidityRef.current) {
-
-            addActivity({
-              title: `[${selectedRoom}] High humidity detected`,
-              description: `Humidity reached ${humidity}%`,
-              type: "alert"
-            })
-
-            addNotification({
-              title: `[${selectedRoom}] High Mold Risk`,
-              message: `Humidity reached ${humidity}%`,
-              type: "alert"
-            })
-
-            previousHumidityRef.current = true
-          }
-
-          if (humidity <= 80) {
-            previousHumidityRef.current = false
-          }
-
-          // TEMPERATURE TRIGGER
-          if (temperature > 30 && !previousTempRef.current) {
-
-            addActivity({
-              title: `[${selectedRoom}] High temperature detected`,
-              description: `Temperature reached ${temperature}°C`,
-              type: "alert"
-            })
-
-            addNotification({
-              title: `[${selectedRoom}] High Temperature`,
-              message: `Temperature reached ${temperature}°C`,
-              type: "warning"
-            })
-
-            previousTempRef.current = true
-          }
-
-          if (temperature <= 30) {
-            previousTempRef.current = false
-          }
-
-          // LIGHT TRIGGER
-          if (light > 700 && !previousLightRef.current) {
-
-            addActivity({
-              title: `[${selectedRoom}] High light exposure`,
-              description: `Lux intensity reached ${light}`,
-              type: "alert"
-            })
-
-            addNotification({
-              title: `[${selectedRoom}] High Light Exposure`,
-              message: `Lux intensity reached ${light}`,
-              type: "warning"
-            })
-
-            previousLightRef.current = true
-          }
-
-          if (light <= 700) {
-            previousLightRef.current = false
-          }
-
-        }
-
-      } catch (error) {
-
-        console.error("ERROR FETCH SUPABASE:", error)
-
+        setHubs(data)
+      } catch (err) {
+        console.error("Failed to load sensor hubs:", err)
+      } finally {
+        setIsLoading(false)
       }
     }
 
-    fetchFromSupabase()
+    load()
 
-    const interval = setInterval(fetchFromSupabase, 5000)
+    // Jangan terlalu sering GET agar server dev tidak berat saat ESP32 POST
+    const interval = setInterval(load, 15000)
 
     return () => clearInterval(interval)
+  }, [])
 
-  }, [selectedRoom])
+  const totalRooms = hubs.length
+
+  const highRiskCount = hubs.filter(
+    (hub) => getRiskLevel(hub) === "HIGH RISK"
+  ).length
+
+  const filtered = hubs
+    .filter((hub) => {
+      const risk = getRiskLevel(hub)
+
+      if (filter === "High Risk") {
+        return risk === "HIGH RISK"
+      }
+
+      if (filter === "Medium Risk") {
+        return risk === "MEDIUM RISK"
+      }
+
+      if (filter === "Normal") {
+        return risk === "NORMAL"
+      }
+
+      if (filter === "Offline") {
+        return risk === "OFFLINE"
+      }
+
+      return true
+    })
+    .sort((a, b) =>
+      a.location.localeCompare(b.location, undefined, {
+        numeric: true,
+        sensitivity: "base",
+      })
+    )
+
+  const handleRoomClick = (hub: SensorHub) => {
+    setSelectedRoom(hub.location)
+    router.push("/monitoring")
+  }
+
+  const tabs: FilterTab[] = [
+    "All Rooms",
+    "High Risk",
+    "Medium Risk",
+    "Normal",
+    "Offline",
+  ]
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-gray-200 border-t-indigo-500" />
+
+          <p className="mt-3 text-sm text-gray-400">
+            Loading overview...
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-
-      <div className="flex justify-between items-center">
-
-        <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
+    <div className="space-y-6 pb-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Dashboard
         </h1>
-
-        <select
-          value={selectedRoom}
-          onChange={(e) => setSelectedRoom(e.target.value)}
-          className="
-            bg-white dark:bg-gray-800
-            text-gray-700 dark:text-gray-200
-            border border-gray-200 dark:border-gray-700
-            rounded-xl
-            px-4 py-2
-            text-sm
-            font-medium
-            shadow-sm
-            focus:outline-none
-            focus:ring-2
-            focus:ring-indigo-500
-          "
-        >
-          <option className="bg-white dark:bg-gray-800">
-            Living Room
-          </option>
-
-          <option className="bg-white dark:bg-gray-800">
-            Bedroom 1
-          </option>
-
-          <option className="bg-white dark:bg-gray-800">
-            Bedroom 2
-          </option>
-
-          <option className="bg-white dark:bg-gray-800">
-            Kitchen
-          </option>
-        </select>
-
       </div>
 
-      <SensorCard />
+      <div className="flex flex-wrap gap-4">
+        <div className="flex items-center gap-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm px-6 py-4 min-w-[200px]">
+          <div className="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
+            <Home size={20} className="text-indigo-500" />
+          </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+          <div>
+            <p className="text-xs text-gray-400 font-medium">
+              Total Rooms
+            </p>
 
-        <div className="lg:col-span-2 space-y-6">
+            <p className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+              {totalRooms}
+            </p>
 
-          <AnalyticsChart />
-
-          <DeviceToggle />
-
+            <p className="text-xs text-gray-400 mt-0.5">
+              Monitored
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="flex items-center gap-4 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm px-6 py-4 min-w-[200px]">
+          <div className="w-11 h-11 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+            <AlertTriangle size={20} className="text-red-500" />
+          </div>
 
-          <MoldRiskCard />
+          <div>
+            <p className="text-xs text-gray-400 font-medium">
+              High Risk Rooms
+            </p>
 
-          <ActivityTimeline />
+            <p className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+              {highRiskCount}
+            </p>
 
+            <p className="text-xs text-gray-400 mt-0.5">
+              {totalRooms > 0
+                ? `${((highRiskCount / totalRooms) * 100).toFixed(0)}% of total`
+                : "0% of total"}
+            </p>
+          </div>
         </div>
-
       </div>
 
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800">
+          <h2 className="font-semibold text-gray-900 dark:text-white">
+            Room Monitoring
+          </h2>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-xl p-0.5">
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setFilter(tab)}
+                  className={clsx(
+                    "text-xs font-medium px-3 py-1.5 rounded-lg transition-all",
+                    filter === tab
+                      ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                      : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  )}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            <div className="hidden sm:flex items-center bg-gray-100 dark:bg-gray-800 rounded-xl p-0.5">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={clsx(
+                  "p-1.5 rounded-lg transition-all",
+                  viewMode === "grid"
+                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                    : "text-gray-400"
+                )}
+              >
+                <LayoutGrid size={14} />
+              </button>
+
+              <button
+                onClick={() => setViewMode("list")}
+                className={clsx(
+                  "p-1.5 rounded-lg transition-all",
+                  viewMode === "list"
+                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                    : "text-gray-400"
+                )}
+              >
+                <List size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5">
+          {filtered.length === 0 ? (
+            <div className="text-center py-16 text-gray-400 text-sm">
+              No rooms match this filter.
+            </div>
+          ) : (
+            <>
+              <div className="sm:hidden flex flex-col gap-3">
+                {filtered.map((hub) => (
+                  <MobileRoomCard
+                    key={hub.id}
+                    hub={hub}
+                    onClick={() => handleRoomClick(hub)}
+                  />
+                ))}
+              </div>
+
+              <div className="hidden sm:block">
+                {viewMode === "grid" ? (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filtered.map((hub) => (
+                      <RoomCard
+                        key={hub.id}
+                        hub={hub}
+                        onClick={() => handleRoomClick(hub)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {filtered.map((hub) => (
+                      <RoomRow
+                        key={hub.id}
+                        hub={hub}
+                        onClick={() => handleRoomClick(hub)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

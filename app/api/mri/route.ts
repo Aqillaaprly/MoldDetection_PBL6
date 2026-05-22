@@ -1,45 +1,43 @@
 import { supabase } from '@/lib/supabase'
+import { calculateMRI, getMRIStatus } from '@/lib/calculateMRI'
 
 export async function GET() {
   const { data, error } = await supabase
     .from('sensor_data')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(10)
+    .limit(20)
 
-  if (error || !data) {
-    return Response.json({ error: 'Failed to fetch data' }, { status: 500 })
+  if (error || !data || data.length === 0) {
+    return Response.json(
+      { error: 'Failed to fetch data' },
+      { status: 500 }
+    )
   }
 
   const latest = data[0]
 
-  let score = 0
+  // Base score dari shared utility (sama dengan dashboard)
+  let score = calculateMRI({
+    humidity: latest.humidity,
+    temperature: latest.temperature,
+    light: latest.light
+  })
 
-  //  HUMIDITY
-  if (latest.humidity > 80) score += 60
-  else if (latest.humidity > 70) score += 40
-  else if (latest.humidity > 60) score += 20
+  // Durasi histori — hanya bisa dihitung di server karena butuh data Supabase
+  const highHumidityCount = data.filter(
+    (d) => d.humidity > 70
+  ).length
 
-  //  TEMPERATURE
-  if (latest.temperature >= 25 && latest.temperature <= 30) score += 20
-  else if (latest.temperature >= 20) score += 10
+  if (highHumidityCount > 15) score += 30
+  else if (highHumidityCount > 10) score += 20
+  else if (highHumidityCount > 5) score += 10
 
-  //  LIGHT
-  if (latest.light < 100) score += 20
-  else if (latest.light < 300) score += 10
-
-  // DURATION
-  const highHumidityCount = data.filter(d => d.humidity > 70).length
-
-  if (highHumidityCount > 10) score += 30
-  else if (highHumidityCount > 5) score += 20
-  else if (highHumidityCount > 3) score += 10
+  // Cap score di 100
+  score = Math.min(score, 100)
 
   return Response.json({
     mri: score,
-    status:
-      score < 40 ? "LOW" :
-      score < 70 ? "MEDIUM" :
-      "HIGH"
+    status: getMRIStatus(score)
   })
 }
