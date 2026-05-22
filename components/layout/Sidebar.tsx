@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Activity,
   Cpu,
-  Info,
   Settings,
   HeartPulse
 } from "lucide-react"
@@ -49,7 +48,6 @@ export default function Sidebar() {
         <Menu href="/monitoring" icon={<Activity size={20}/>}        label="Monitoring" active={pathname === "/monitoring"} />
         <Menu href="/devices"    icon={<Cpu size={20}/>}             label="Devices"    active={pathname === "/devices"} />
         <Menu href="/settings"   icon={<Settings size={20}/>}        label="Settings"   active={pathname === "/settings"} />
-        <Menu href="/about"      icon={<Info size={20}/>}            label="About"      active={pathname === "/about"} />
       </nav>
     </aside>
   )

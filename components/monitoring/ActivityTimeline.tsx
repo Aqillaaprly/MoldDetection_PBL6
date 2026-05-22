@@ -49,13 +49,13 @@ export default function ActivityTimeline() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+    <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
 
-      <h3 className="font-semibold text-lg mb-6">
+      <h3 className="font-semibold text-base sm:text-lg mb-4 sm:mb-5">
         System Activity
       </h3>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
 
         {activities.slice(0, 4).map((activity) => {
 
@@ -64,7 +64,7 @@ export default function ActivityTimeline() {
           return (
             <div
               key={activity.id}
-              className="flex gap-4 items-start"
+              className="flex gap-3 sm:gap-4 items-start"
             >
 
               <div className={`

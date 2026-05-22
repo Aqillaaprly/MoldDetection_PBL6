@@ -37,7 +37,7 @@ export default function DeviceToggle() {
 
   if (!currentRoom) {
     return (
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm">
+      <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-2xl shadow-sm">
         <div className="flex justify-between mb-6">
           <h3 className="font-semibold text-lg">
             {selectedRoom} Device Control
@@ -56,7 +56,7 @@ export default function DeviceToggle() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm">
+    <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-2xl shadow-sm">
 
       <div className="flex justify-between mb-6">
 
@@ -79,7 +79,7 @@ export default function DeviceToggle() {
 
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
 
         {currentRoom.dehumidifier.enabled && (
           <Toggle
@@ -129,7 +129,7 @@ function Toggle({
 }: ToggleProps) {
   return (
     <div
-      className={`flex items-center justify-between p-4 rounded-xl transition-all
+      className={`flex items-center justify-between p-3.5 rounded-xl transition-all
       ${
         state
           ? "bg-indigo-500 text-white"

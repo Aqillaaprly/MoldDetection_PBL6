@@ -21,6 +21,7 @@ const METRICS = [
   {
     key: "humidity",
     label: "Humidity (%)",
+    mobileLabel: "Hum (%)",
     color: "#42a785",
     unit: "%",
     axis: "left"
@@ -28,6 +29,7 @@ const METRICS = [
   {
     key: "temperature",
     label: "Temperature (°C)",
+    mobileLabel: "Temp (°C)",
     color: "#f97316",
     unit: "°C",
     axis: "left"
@@ -35,6 +37,7 @@ const METRICS = [
   {
     key: "light",
     label: "Light (lux)",
+    mobileLabel: "Light (lux)",
     color: "#8b5cf6",
     unit: " lux",
     axis: "right"
@@ -127,16 +130,16 @@ export default function AnalyticsChart() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+    <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
 
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-5">
         <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
           Analytics
         </h3>
 
         {/* Metric toggles */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
           {METRICS.map((metric) => {
             const isActive = activeMetrics.includes(metric.key)
             return (
@@ -146,6 +149,7 @@ export default function AnalyticsChart() {
                 className={`
                   flex items-center gap-1.5 text-xs font-medium
                   px-3 py-1.5 rounded-full border transition-all
+                  whitespace-nowrap shrink-0
                   ${isActive
                     ? "border-transparent text-white"
                     : "border-gray-200 dark:border-gray-700 text-gray-400 bg-transparent"
@@ -165,7 +169,15 @@ export default function AnalyticsChart() {
                       : metric.color
                   }}
                 />
-                {metric.label}
+                <>
+                  <span className="sm:hidden">
+                    {metric.mobileLabel}
+                  </span>
+
+                  <span className="hidden sm:inline">
+                    {metric.label}
+                  </span>
+                </>
               </button>
             )
           })}
