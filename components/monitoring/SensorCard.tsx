@@ -33,7 +33,7 @@ export default function SensorCard() {
 
   return (
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
 
       <Card
         title="HUMIDITY"
@@ -77,20 +77,20 @@ function Card({
 
   return (
 
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+    <div className="bg-white dark:bg-gray-900 p-3 sm:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
 
       {/* Top */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
 
         {/* Icon */}
-        <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
           {icon}
         </div>
 
         {/* Status badge */}
         <span
           className={clsx(
-            "text-xs px-3 py-1 rounded-full font-medium",
+            "text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-medium",
 
             color === "red" &&
               "bg-red-100 text-red-600",
@@ -108,20 +108,20 @@ function Card({
       </div>
 
       {/* Title */}
-      <p className="text-xs tracking-wider text-gray-400 mb-1">
+      <p className="text-[10px] sm:text-xs tracking-wider text-gray-400 mb-1 truncate">
         {title}
       </p>
 
       {/* Value + change */}
-      <div className="flex items-end gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-end gap-0.5 sm:gap-2">
 
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h2 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
           {value}
         </h2>
 
         <span
           className={clsx(
-            "text-sm font-medium",
+            "text-[10px] sm:text-sm font-medium",
 
             color === "red" &&
               "text-red-500",

@@ -18,7 +18,7 @@ export default function AboutContainer({
   return (
     <div
       className={`
-        rounded-xl p-4 transition
+        rounded-2xl p-4 sm:p-5 transition
         ${
           isGradient
             ? "bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600"
@@ -26,12 +26,11 @@ export default function AboutContainer({
         }
       `}
     >
+      <div className="flex items-center gap-3 mb-3 sm:mb-4">
 
-      {/* HEADER */}
-      <div className="flex items-center gap-3 mb-3">
         {icon && (
           <div
-            className={`p-2 rounded-lg ${
+            className={`p-2 rounded-xl shrink-0 ${
               isGradient
                 ? "bg-white/20 text-white"
                 : `${iconBg} dark:bg-gray-800 dark:text-gray-200`
@@ -42,7 +41,7 @@ export default function AboutContainer({
         )}
 
         <h2
-          className={`font-semibold text-sm uppercase ${
+          className={`font-semibold text-xs sm:text-sm uppercase tracking-wide ${
             isGradient
               ? "text-white/80"
               : "text-gray-500 dark:text-gray-400"
@@ -50,9 +49,9 @@ export default function AboutContainer({
         >
           {title}
         </h2>
+
       </div>
 
-      {/* CONTENT */}
       <div
         className={`text-sm leading-relaxed ${
           isGradient

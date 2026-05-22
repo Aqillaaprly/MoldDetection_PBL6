@@ -10,7 +10,6 @@ const navItems = [
   { href: "/monitoring", icon: Activity,         label: "Monitor"   },
   { href: "/devices",    icon: Cpu,              label: "Devices"   },
   { href: "/settings",   icon: Settings,         label: "Settings"  },
-  { href: "/about",      icon: Info,             label: "About"     },
 ]
 
 export default function BottomNav() {

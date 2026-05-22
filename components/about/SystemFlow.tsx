@@ -1,6 +1,10 @@
-function FlowCard({ title }: { title: string }) {
+function FlowCard({
+  title
+}: {
+  title: string
+}) {
   return (
-    <div className="bg-white dark:bg-gray-900 px-4 py-3 rounded-lg shadow text-sm font-medium text-gray-700 dark:text-gray-200 whitespace-nowrap">
+    <div className="bg-white dark:bg-gray-900 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl shadow text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 whitespace-nowrap">
       {title}
     </div>
   )
@@ -8,11 +12,11 @@ function FlowCard({ title }: { title: string }) {
 
 export default function SystemFlow() {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto pb-1">
 
-      <div className="flex items-center gap-4 w-max">
+      <div className="flex items-center gap-3 sm:gap-4 w-max">
 
-        <FlowCard title="Sensor Collect Data" />
+        <FlowCard title="Sensor Collects Data" />
         <span className="text-gray-400">→</span>
 
         <FlowCard title="Send to Server" />

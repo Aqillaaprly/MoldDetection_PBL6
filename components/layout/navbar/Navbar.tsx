@@ -1,6 +1,6 @@
 "use client"
 
-import { Menu, Moon, Sun, Bell, Settings, LogOut } from "lucide-react"
+import { Menu, Moon, Sun, Bell, LogOut, Info } from "lucide-react"
 import { useSidebar } from "@/hooks/useSidebar"
 import { useEffect, useState, useRef } from "react"
 import { useRouter } from "next/navigation"
@@ -29,7 +29,7 @@ export default function Navbar() {
         setProfile(profile.name ?? "", profile.avatar_url ?? null)
       }
     })
-  }, [])
+  }, [setProfile])
 
   const handleMenu = () => {
     toggleSidebar()
@@ -38,19 +38,20 @@ export default function Navbar() {
   /* THEME INIT */
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme")
-    if (savedTheme === "dark") {
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+
+    const shouldUseDark =
+      savedTheme === "dark" || (!savedTheme && systemDark)
+
+    if (shouldUseDark) {
       document.documentElement.classList.add("dark")
-      setDark(true)
-    } else if (savedTheme === "light") {
-      document.documentElement.classList.remove("dark")
-      setDark(false)
     } else {
-      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-      if (systemDark) {
-        document.documentElement.classList.add("dark")
-        setDark(true)
-      }
+      document.documentElement.classList.remove("dark")
     }
+
+    setTimeout(() => {
+      setDark(shouldUseDark)
+    }, 0)
   }, [])
 
   /* CLICK OUTSIDE */
@@ -84,9 +85,9 @@ export default function Navbar() {
     router.refresh()
   }
 
-  const handleSettings = () => {
+  const handleAbout = () => {
     setOpenProfile(false)
-    router.push("/settings") // sesuaikan dengan route settings kamu
+    router.push("/about") // sesuaikan dengan route about kamu
   }
 
   return (
@@ -140,11 +141,11 @@ export default function Navbar() {
               </div>
 
               <button
-                onClick={handleSettings}
+                onClick={handleAbout}
                 className="flex items-center gap-2 w-full px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-slate-700 dark:text-gray-200"
               >
-                <Settings size={16} />
-                Settings
+                <Info size={16} />
+                About
               </button>
 
               <button
