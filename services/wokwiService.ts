@@ -19,6 +19,14 @@ export interface WokwiDeviceStatus {
   signalStrength?: number
 }
 
+interface WokwiApiSensorRow {
+  device_id?: string
+  temperature: number
+  humidity: number
+  light: number
+  created_at: string
+}
+
 /**
  * Send sensor data to Next.js API
  * This function is called from the Wokwi ESP32 code
@@ -109,13 +117,14 @@ export async function getWokwiDeviceStatus(deviceId: string): Promise<WokwiDevic
  * Uses polling since WebSocket might not be available in browser environment
  */
 export function subscribeToWokwiUpdates(
-  callback: (data: any) => void,
+  callback: (data: WokwiApiSensorRow) => void,
   interval: number = 5000
 ) {
   const intervalId = setInterval(async () => {
     const data = await fetchLatestSensorData()
-    if (data) {
-      callback(data[0])
+
+    if (Array.isArray(data) && data.length > 0) {
+      callback(data[0] as WokwiApiSensorRow)
     }
   }, interval)
 

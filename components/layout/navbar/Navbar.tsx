@@ -29,7 +29,7 @@ export default function Navbar() {
         setProfile(profile.name ?? "", profile.avatar_url ?? null)
       }
     })
-  }, [])
+  }, [setProfile])
 
   const handleMenu = () => {
     toggleSidebar()
@@ -38,19 +38,20 @@ export default function Navbar() {
   /* THEME INIT */
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme")
-    if (savedTheme === "dark") {
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+
+    const shouldUseDark =
+      savedTheme === "dark" || (!savedTheme && systemDark)
+
+    if (shouldUseDark) {
       document.documentElement.classList.add("dark")
-      setDark(true)
-    } else if (savedTheme === "light") {
-      document.documentElement.classList.remove("dark")
-      setDark(false)
     } else {
-      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-      if (systemDark) {
-        document.documentElement.classList.add("dark")
-        setDark(true)
-      }
+      document.documentElement.classList.remove("dark")
     }
+
+    setTimeout(() => {
+      setDark(shouldUseDark)
+    }, 0)
   }, [])
 
   /* CLICK OUTSIDE */

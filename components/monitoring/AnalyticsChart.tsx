@@ -44,6 +44,64 @@ const METRICS = [
   }
 ]
 
+type TooltipPayload = {
+  dataKey?: string
+  value?: number
+  color?: string
+}
+
+type CustomTooltipProps = {
+  active?: boolean
+  payload?: TooltipPayload[]
+  label?: string
+}
+
+function CustomTooltip({
+  active,
+  payload,
+  label
+}: CustomTooltipProps) {
+  if (!active || !payload?.length) return null
+
+  return (
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg px-4 py-3 text-sm">
+      <p className="text-gray-400 text-xs mb-2">
+        {label}
+      </p>
+
+      {payload.map((entry) => {
+        const metric = METRICS.find(
+          (m) => m.key === entry.dataKey
+        )
+
+        return (
+          <div
+            key={entry.dataKey}
+            className="flex items-center gap-2 py-0.5"
+          >
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: entry.color }}
+            />
+
+            <span className="text-gray-500 dark:text-gray-400 min-w-[120px]">
+              {metric?.label}
+            </span>
+
+            <span
+              className="font-semibold"
+              style={{ color: entry.color }}
+            >
+              {entry.value}
+              {metric?.unit}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function AnalyticsChart() {
   const { selectedRoom } = useRoomStore()
 
@@ -87,61 +145,17 @@ export default function AnalyticsChart() {
     )
   }
 
-  const CustomTooltip = ({
-    active,
-    payload,
-    label
-  }: any) => {
-    if (!active || !payload?.length) return null
-
-    return (
-      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg px-4 py-3 text-sm">
-        <p className="text-gray-400 text-xs mb-2">
-          {label}
-        </p>
-        {payload.map((entry: any) => {
-          const metric = METRICS.find(
-            (m) => m.key === entry.dataKey
-          )
-          return (
-            <div
-              key={entry.dataKey}
-              className="flex items-center gap-2 py-0.5"
-            >
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ backgroundColor: entry.color }}
-              />
-              <span className="text-gray-500 dark:text-gray-400 min-w-[120px]">
-                {metric?.label}
-              </span>
-              <span
-                className="font-semibold"
-                style={{ color: entry.color }}
-              >
-                {entry.value}
-                {metric?.unit}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
   return (
     <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-5">
         <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
           Analytics
         </h3>
 
-        {/* Metric toggles */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
           {METRICS.map((metric) => {
             const isActive = activeMetrics.includes(metric.key)
+
             return (
               <button
                 key={metric.key}
@@ -150,9 +164,10 @@ export default function AnalyticsChart() {
                   flex items-center gap-1.5 text-xs font-medium
                   px-3 py-1.5 rounded-full border transition-all
                   whitespace-nowrap shrink-0
-                  ${isActive
-                    ? "border-transparent text-white"
-                    : "border-gray-200 dark:border-gray-700 text-gray-400 bg-transparent"
+                  ${
+                    isActive
+                      ? "border-transparent text-white"
+                      : "border-gray-200 dark:border-gray-700 text-gray-400 bg-transparent"
                   }
                 `}
                 style={
@@ -169,6 +184,7 @@ export default function AnalyticsChart() {
                       : metric.color
                   }}
                 />
+
                 <>
                   <span className="sm:hidden">
                     {metric.mobileLabel}
@@ -201,7 +217,6 @@ export default function AnalyticsChart() {
             axisLine={false}
           />
 
-          {/* Kiri: % / °C */}
           <YAxis
             yAxisId="left"
             domain={[0, 100]}
@@ -217,7 +232,6 @@ export default function AnalyticsChart() {
             }}
           />
 
-          {/* Kanan: lux */}
           <YAxis
             yAxisId="right"
             orientation="right"
@@ -271,10 +285,8 @@ export default function AnalyticsChart() {
               activeDot={{ r: 4 }}
             />
           )}
-
         </LineChart>
       </ResponsiveContainer>
-
     </div>
   )
 }
