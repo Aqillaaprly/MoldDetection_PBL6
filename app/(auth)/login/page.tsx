@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { login } from "@/lib/auth"
 
 export default function LoginPage() {
@@ -30,7 +31,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100">
-      <div className="w-[900px] md:w-[1000px] h-[420px] backdrop-blur-xl bg-white/80 rounded-2xl shadow-[0_20px_60px_rgba(99,102,241,0.25)] overflow-hidden grid grid-cols-2 animate-fadeIn">
+      <div className="w-[900px] md:w-[1000px] h-[440px] backdrop-blur-xl bg-white/80 rounded-2xl shadow-[0_20px_60px_rgba(99,102,241,0.25)] overflow-hidden grid grid-cols-2 animate-fadeIn">
 
         {/* LEFT */}
         <div className="p-10 flex flex-col justify-center">
@@ -70,13 +71,18 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
+
+          <p className="text-sm text-gray-400 text-center mt-4">
+            Belum punya akun?{" "}
+            <Link href="/register" className="text-indigo-600 hover:underline font-medium">
+              Register
+            </Link>
+          </p>
         </div>
 
         {/* RIGHT */}
         <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 flex items-center justify-center text-white relative">
-
-          <div className="absolute w-40 h-40 bg-white/20 rounded-full blur-3xl top-10 left-10"></div>
-
+          <div className="absolute w-40 h-40 bg-white/20 rounded-full blur-3xl top-10 left-10" />
           <div className="text-center z-10">
             <h2 className="text-3xl font-bold mb-2">Welcome Back!</h2>
             <p className="text-white/80 text-sm">

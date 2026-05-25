@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useDeviceStore } from "@/store/useDeviceStore"
 
 import {
   Home,
@@ -39,6 +40,7 @@ export default function DashboardOverview() {
   const router = useRouter()
 
   const { setSelectedRoom } = useRoomStore()
+  const { loadRooms, isLoaded } = useDeviceStore()
 
   const [hubs, setHubs] = useState<SensorHub[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -49,7 +51,15 @@ export default function DashboardOverview() {
   const [viewMode, setViewMode] =
     useState<ViewMode>("grid")
 
+  // Load rooms milik user dari DB saat pertama mount
   useEffect(() => {
+    loadRooms()
+  }, [])
+
+  // Fetch sensor data — tunggu sampai rooms sudah di-load dari DB
+  useEffect(() => {
+    if (!isLoaded) return
+
     const load = async () => {
       try {
         const data = await getSensorHubs()
@@ -66,7 +76,7 @@ export default function DashboardOverview() {
     const interval = setInterval(load, 5000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [isLoaded])
 
   // ─── Stats ─────────────────────────────────────────────
 
