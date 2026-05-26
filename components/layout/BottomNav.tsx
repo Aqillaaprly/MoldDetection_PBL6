@@ -6,7 +6,7 @@ import clsx from "clsx"
 import { LayoutDashboard, Activity, Cpu, Settings, Info } from "lucide-react"
 
 const navItems = [
-  { href: "/",           icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard",           icon: LayoutDashboard, label: "Dashboard" },
   { href: "/monitoring", icon: Activity,         label: "Monitor"   },
   { href: "/devices",    icon: Cpu,              label: "Devices"   },
   { href: "/settings",   icon: Settings,         label: "Settings"  },
