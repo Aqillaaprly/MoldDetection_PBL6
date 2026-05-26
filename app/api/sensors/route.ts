@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 export const runtime = "nodejs"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+
 const supabaseKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY ??
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -27,11 +28,12 @@ const roomMap: Record<string, number> = {
 }
 
 type SensorPayload = {
-  deviceId: string
-  roomName: string
-  temperature: number
-  humidity: number
-  ldrValue: number
+  deviceId?: string
+  roomName?: string
+  temperature?: number
+  humidity?: number
+  ldrValue?: number
+  light?: number
   lightStatus?: string
   status?: string
   moldRisk?: string
@@ -62,13 +64,19 @@ export async function POST(req: Request) {
 
     console.log("Payload diterima:", body)
 
-    const { roomName, temperature, humidity, ldrValue } = body
+    const roomName = body.roomName ?? "Bedroom 2"
+    const temperature = Number(body.temperature)
+    const humidity = Number(body.humidity)
+    const ldrValue =
+      body.ldrValue !== undefined
+        ? Number(body.ldrValue)
+        : Number(body.light)
 
     if (
       !roomName ||
-      typeof temperature !== "number" ||
-      typeof humidity !== "number" ||
-      typeof ldrValue !== "number"
+      Number.isNaN(temperature) ||
+      Number.isNaN(humidity) ||
+      Number.isNaN(ldrValue)
     ) {
       console.log("Payload tidak valid")
 
@@ -82,8 +90,9 @@ export async function POST(req: Request) {
       )
     }
 
-    const roomId = roomMap[roomName] ?? 1
+    const roomId = roomMap[roomName] ?? 2
 
+    console.log("Room Name:", roomName)
     console.log("Room ID:", roomId)
 
     const { data, error } = await supabase
@@ -116,6 +125,8 @@ export async function POST(req: Request) {
       {
         success: true,
         message: "Sensor data saved",
+        roomName,
+        roomId,
         data,
       },
       { status: 200 }
@@ -141,7 +152,7 @@ export async function GET() {
       .from("sensor_data")
       .select("*")
       .order("created_at", { ascending: false })
-      .limit(20)
+      .limit(100)
 
     if (error) {
       console.error("Supabase fetch error:", error)
