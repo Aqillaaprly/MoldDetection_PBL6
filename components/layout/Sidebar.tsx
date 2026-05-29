@@ -31,7 +31,13 @@ export default function Sidebar() {
         collapsed && "justify-center px-0"
       )}>
         <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-indigo-600 text-white shrink-0">
-          <HeartPulse size={20} />
+          <img
+            src="/images/logo-white.png"
+            alt="MoldGuard logo"
+            width={28}
+            height={28}
+            className="rounded-md"
+          />
         </div>
         <div className={clsx(
           "transition-all duration-200 overflow-hidden",
@@ -44,7 +50,7 @@ export default function Sidebar() {
 
       {/* Menu */}
       <nav className="flex flex-col gap-2 px-3">
-        <Menu href="/dashboard"           icon={<LayoutDashboard size={20}/>} label="Dashboard" active={pathname === "/dashboard"} />
+        <Menu href="/dashboard"  icon={<LayoutDashboard size={20}/>} label="Dashboard" active={pathname === "/dashboard"} />
         <Menu href="/monitoring" icon={<Activity size={20}/>}        label="Monitoring" active={pathname === "/monitoring"} />
         <Menu href="/devices"    icon={<Cpu size={20}/>}             label="Devices"    active={pathname === "/devices"} />
         <Menu href="/settings"   icon={<Settings size={20}/>}        label="Settings"   active={pathname === "/settings"} />
