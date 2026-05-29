@@ -25,14 +25,14 @@ export default function HeroSection() {
 
         <div className="flex flex-wrap gap-4">
           <Link
-            href="/monitoring"
+            href="/register"
             className="rounded-xl bg-blue-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-800"
           >
             Start Monitoring
           </Link>
 
           <Link
-            href="/dashboard"
+            href="/login"
             className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-blue-700 transition hover:border-blue-200 hover:bg-blue-50"
           >
             View Dashboard

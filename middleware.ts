@@ -22,35 +22,36 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session supaya tidak expired
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
 
-  const publicRoutes = ["/login", "/register"]
-  const isPublic = publicRoutes.some((route) => pathname.startsWith(route))
+  // "/" pakai exact match, login/register pakai startsWith
+  const isPublic =
+    pathname === "/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register")
 
-  // Belum login → redirect ke /login
+  // Belum login + bukan public → redirect ke landing page
   if (!user && !isPublic) {
-    return NextResponse.redirect(new URL("/login", request.url))
-  }
-
-  // Sudah login tapi buka /login atau /register → redirect ke dashboard
-  if (user && isPublic) {
     return NextResponse.redirect(new URL("/", request.url))
   }
 
-  // Sudah login — cek apakah sudah punya rooms (kecuali kalau sedang di /onboarding)
-  if (user && pathname !== "/onboarding") {
+  // Sudah login tapi buka /login atau /register → redirect ke dashboard
+  if (user && (pathname.startsWith("/login") || pathname.startsWith("/register"))) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
+  }
+
+  // Sudah login — cek rooms (kecuali di /onboarding atau landing page)
+  if (user && pathname !== "/onboarding" && pathname !== "/") {
     const { data: rooms } = await supabase
       .from("rooms")
       .select("id")
       .eq("user_id", user.id)
       .limit(1)
 
-    // Belum punya room → paksa ke onboarding
     if (!rooms || rooms.length === 0) {
       return NextResponse.redirect(new URL("/onboarding", request.url))
     }
