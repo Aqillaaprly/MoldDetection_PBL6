@@ -5,23 +5,15 @@ export const runtime = "nodejs"
 export async function GET() {
   try {
     const { data, error } = await supabaseAdmin
-      .from("devices")
-      .select(
-        `
-        *,
-        rooms (
-          id,
-          name
-        )
-      `
-      )
+      .from("rooms")
+      .select("*")
       .order("id", { ascending: true })
 
     if (error) {
       return Response.json(
         {
           success: false,
-          message: "Failed to fetch devices",
+          message: "Failed to fetch rooms",
           error: error.message,
         },
         { status: 500 }
