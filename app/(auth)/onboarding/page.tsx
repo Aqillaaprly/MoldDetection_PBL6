@@ -93,7 +93,7 @@ export default function OnboardingPage() {
       return
     }
 
-    router.push("/")
+    router.push("/dashboard")
   }
 
   return (

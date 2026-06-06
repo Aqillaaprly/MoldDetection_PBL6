@@ -12,12 +12,22 @@ export default function CtaSection() {
           becomes a serious problem. Your health and your environment deserve the
           best intelligence.
         </p>
-        <Link
-          href="/monitoring"
-          className="inline-flex rounded-xl bg-white px-8 py-3 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
-        >
-          Start Monitoring
-        </Link>
+
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Link
+            href="/register"
+            className="inline-flex rounded-xl bg-white px-8 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+          >
+            Get Started Free
+          </Link>
+
+          <Link
+            href="/login"
+            className="inline-flex rounded-xl border border-white/30 px-8 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            Login
+          </Link>
+        </div>
       </div>
     </section>
   )
