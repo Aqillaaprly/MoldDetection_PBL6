@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useDeviceStore } from "@/store/useDeviceStore"
+import { useRiskNotifier } from "@/hooks/useRiskNotifier"
 
 import {
   Home,
@@ -55,6 +56,9 @@ export default function DashboardOverview() {
   useEffect(() => {
     loadRooms()
   }, [])
+
+  //notifier
+  useRiskNotifier(hubs)
 
   // Fetch sensor data — tunggu sampai rooms sudah di-load dari DB
   useEffect(() => {
