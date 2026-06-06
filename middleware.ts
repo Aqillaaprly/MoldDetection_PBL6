@@ -24,9 +24,21 @@ export async function middleware(request: NextRequest) {
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
+
+  // Kalau refresh token expired/invalid → clear cookies → redirect ke login
+  if (error?.code === "refresh_token_not_found" || error?.message?.includes("Refresh Token")) {
+    const redirectResponse = NextResponse.redirect(new URL("/login", request.url))
+    request.cookies.getAll().forEach((cookie) => {
+      if (cookie.name.includes("supabase") || cookie.name.includes("sb-")) {
+        redirectResponse.cookies.delete(cookie.name)
+      }
+    })
+    return redirectResponse
+  }
 
   // "/" pakai exact match, login/register pakai startsWith
   const isPublic =
