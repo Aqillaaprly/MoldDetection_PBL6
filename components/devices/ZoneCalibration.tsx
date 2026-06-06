@@ -1,9 +1,9 @@
 export default function ZoneCalibration() {
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl p-7 shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 sm:p-5 shadow-sm">
 
-      <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
+      <h3 className="text-base sm:text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">
         Zone Calibration
       </h3>
 

@@ -13,7 +13,7 @@ interface Props {
 
 export default function DeviceCard({
   name,
-  location,
+  location: _location,
   isOn,
   connectivity,
   toggle,
@@ -24,7 +24,6 @@ export default function DeviceCard({
 
   const isOnline = connectivity === "online"
 
-  // FIX: offline device always OFF
   const realStatus = isOnline ? isOn : false
 
   const statusStyle = realStatus
@@ -33,7 +32,7 @@ export default function DeviceCard({
 
   return (
     <div
-      className={`rounded-2xl p-5 flex flex-col justify-between shadow-sm transition border border-gray-100 dark:border-gray-800 ${
+      className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-sm transition border border-gray-100 dark:border-gray-800 ${
         realStatus
           ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white"
           : "bg-white dark:bg-gray-900 text-slate-800 dark:text-gray-200"
@@ -42,10 +41,10 @@ export default function DeviceCard({
 
       <div>
 
-        <div className="flex justify-between mb-6">
+        <div className="flex justify-between items-start gap-2 mb-4 sm:mb-5">
 
           <div
-            className={`p-1 rounded-xl ${
+            className={`p-2 rounded-xl shrink-0 ${
               realStatus
                 ? "bg-white/20"
                 : "bg-slate-50 dark:bg-gray-800"
@@ -54,13 +53,13 @@ export default function DeviceCard({
             <Icon />
           </div>
 
-          <span className={`text-xs px-3 py-2 rounded-md ${statusStyle}`}>
+          <span className={`text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-md whitespace-nowrap ${statusStyle}`}>
             STATUS: {realStatus ? "ON" : "OFF"}
           </span>
 
         </div>
 
-        <h3 className="text-lg font-semibold">{name}</h3>
+        <h3 className="text-base sm:text-lg font-semibold truncate">{name}</h3>
 
         <p
           className={`text-xs mt-1 ${
@@ -75,7 +74,7 @@ export default function DeviceCard({
       <button
         onClick={toggle}
         disabled={!isOnline}
-        className={`w-full py-3 rounded-xl font-semibold mt-4 ${
+        className={`w-full py-2.5 sm:py-3 rounded-xl text-sm font-semibold mt-4 ${
           realStatus
             ? "bg-white text-indigo-600"
             : "bg-indigo-500 text-white hover:bg-indigo-600"

@@ -7,11 +7,11 @@ export default function AutomationPanel() {
   const [automation, setAutomation] = useState(true)
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 dark:border-gray-800">
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center gap-3 mb-4">
 
-        <span className="font-semibold text-slate-800 dark:text-gray-200">
+        <span className="font-semibold text-sm sm:text-base text-slate-800 dark:text-gray-200">
           Automation Mode
         </span>
 

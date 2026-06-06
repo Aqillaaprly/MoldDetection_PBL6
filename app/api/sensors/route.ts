@@ -1,86 +1,154 @@
-import { supabase } from '@/lib/supabase'
+import { createClient } from "@supabase/supabase-js"
 
-const rooms = [
-  { id: 1, name: "Living Room" },
-  { id: 2, name: "Bedroom 1" },
-  { id: 3, name: "Bedroom 2" },
-  { id: 4, name: "Kitchen" }
-]
+export const runtime = "nodejs"
 
-export async function GET() {
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const esp32ApiKey = process.env.ESP32_API_KEY
 
-  const smooth = (
-    value: number,
-    min: number,
-    max: number,
-    step: number
-  ) => {
+if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL is missing")
+if (!supabaseKey) throw new Error("Supabase key is missing")
 
-    const change = (Math.random() - 0.5) * step
+const supabase = createClient(supabaseUrl, supabaseKey)
 
-    let newValue = value + change
+type SensorPayload = {
+  deviceId?: string
+  userId?: string
+  roomName?: string
+  temperature?: number
+  humidity?: number
+  ldrValue?: number
+  light?: number
+  lightStatus?: string
+  status?: string
+  moldRisk?: string
+  relayStatus?: string
+}
 
-    if (newValue < min) newValue = min
-    if (newValue > max) newValue = max
+export async function POST(req: Request) {
+  console.log("POST /api/sensors masuk")
 
-    return Number(newValue.toFixed(1))
+  try {
+    const apiKey = req.headers.get("x-api-key")
+
+    if (esp32ApiKey && apiKey !== esp32ApiKey) {
+      console.log("Unauthorized device")
+      return Response.json({ success: false, message: "Unauthorized device" }, { status: 401 })
+    }
+
+    const body = (await req.json()) as SensorPayload
+    console.log("Payload diterima:", body)
+
+    const roomName = body.roomName ?? "Kitchen"
+    const userId = body.userId
+    const temperature = Number(body.temperature)
+    const humidity = Number(body.humidity)
+    const ldrValue = body.ldrValue !== undefined ? Number(body.ldrValue) : Number(body.light)
+
+    if (!roomName || Number.isNaN(temperature) || Number.isNaN(humidity) || Number.isNaN(ldrValue)) {
+      return Response.json({ success: false, message: "Invalid sensor payload", received: body }, { status: 400 })
+    }
+
+    // Lookup room_id dari database berdasarkan nama & user_id
+    let roomQuery = supabase
+      .from("rooms")
+      .select("id")
+      .eq("name", roomName)
+
+    if (userId) {
+      roomQuery = roomQuery.eq("user_id", userId)
+    }
+
+    const { data: roomData, error: roomError } = await roomQuery.single()
+
+    if (roomError || !roomData) {
+      console.error("Room tidak ditemukan:", roomName, userId)
+      return Response.json(
+        { success: false, message: `Room "${roomName}" tidak ditemukan` },
+        { status: 404 }
+      )
+    }
+
+    const { data, error } = await supabase
+      .from("sensor_data")
+      .insert({
+        room_id: roomData.id,
+        temperature,
+        humidity: Math.round(humidity),
+        light: ldrValue,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Supabase insert error:", error)
+      return Response.json({ success: false, message: error.message }, { status: 500 })
+    }
+
+    console.log("Data berhasil disimpan:", data)
+    return Response.json({ success: true, message: "Sensor data saved", data }, { status: 200 })
+
+  } catch (error) {
+    console.error("POST /api/sensors error:", error)
+    return Response.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
+}
 
-  const sensorRows = []
+export async function GET(req: Request) {
+  console.log("GET /api/sensors masuk")
 
-  for (const room of rooms) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const userId = searchParams.get("userId")
 
-    // ambil data terakhir per room
-    const { data: lastData } = await supabase
-      .from('sensor_data')
-      .select('*')
-      .eq('room_id', room.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
+    // Hanya ambil data 1 jam terakhir supaya query cepat
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
 
-    const last = lastData?.[0]
+    let roomIds: number[] | null = null
 
-    const newData = last
-      ? {
-          room_id: room.id,
+    // Kalau ada userId, ambil room_ids milik user itu
+    if (userId) {
+      const { data: userRooms } = await supabase
+        .from("rooms")
+        .select("id")
+        .eq("user_id", userId)
 
-          temperature: smooth(
-            last.temperature,
-            20,
-            35,
-            1
-          ),
+      if (userRooms && userRooms.length > 0) {
+        roomIds = userRooms.map((r) => r.id)
+      } else {
+        // User tidak punya rooms → return kosong
+        return Response.json([], { status: 200 })
+      }
+    }
 
-          humidity: Math.round(
-            smooth(last.humidity, 50, 90, 3)
-          ),
+    let query = supabase
+      .from("sensor_data")
+      .select("*")
+      .gte("created_at", oneHourAgo)
+      .order("created_at", { ascending: false })
+      .limit(500)
 
-          light: Math.round(
-            smooth(last.light, 100, 700, 50)
-          )
-        }
+    if (roomIds) {
+      query = supabase
+        .from("sensor_data")
+        .select("*")
+        .in("room_id", roomIds)
+        .gte("created_at", oneHourAgo)
+        .order("created_at", { ascending: false })
+        .limit(500)
+    }
 
-      : {
-          room_id: room.id,
+    const { data, error } = await query
 
-          temperature: 25,
-          humidity: 60,
-          light: 300
-        }
+    if (error) {
+      console.error("Supabase fetch error:", error)
+      return Response.json({ success: false, message: error.message }, { status: 500 })
+    }
 
-    sensorRows.push(newData)
+    return Response.json(data, { status: 200 })
+
+  } catch (error) {
+    console.error("GET /api/sensors error:", error)
+    return Response.json({ success: false, message: "Internal server error" }, { status: 500 })
   }
-
-  // insert semua room sekaligus
-  await supabase
-    .from('sensor_data')
-    .insert(sensorRows)
-
-  const { data } = await supabase
-    .from('sensor_data')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(20)
-
-  return Response.json(data)
 }

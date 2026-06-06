@@ -1,45 +1,71 @@
 import { supabase } from '@/lib/supabase'
+import { calculateMRI, getMRIStatus } from '@/lib/calculateMRI'
 
-export async function GET() {
-  const { data, error } = await supabase
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const roomId = searchParams.get("roomId")
+
+  // Ambil 20 data terakhir (untuk analisis durasi)
+  let query = supabase
     .from('sensor_data')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(10)
+    .limit(20)
 
-  if (error || !data) {
+  if (roomId) {
+    query = supabase
+      .from('sensor_data')
+      .select('*')
+      .eq('room_id', Number(roomId))
+      .order('created_at', { ascending: false })
+      .limit(20)
+  }
+
+  const { data, error } = await query
+
+  if (error || !data || data.length === 0) {
     return Response.json({ error: 'Failed to fetch data' }, { status: 500 })
   }
 
   const latest = data[0]
 
-  let score = 0
+  // Score dari kondisi sensor saat ini
+  let score = calculateMRI({
+    humidity: latest.humidity,
+    temperature: latest.temperature,
+    light: latest.light,
+  })
 
-  //  HUMIDITY
-  if (latest.humidity > 80) score += 60
-  else if (latest.humidity > 70) score += 40
-  else if (latest.humidity > 60) score += 20
+ 
+  const highHumidityCount = data.filter((d) => d.humidity >= 80).length
+  const ratio = highHumidityCount / data.length  // 0.0 – 1.0
 
-  //  TEMPERATURE
-  if (latest.temperature >= 25 && latest.temperature <= 30) score += 20
-  else if (latest.temperature >= 20) score += 10
+  if (ratio >= 0.75)      score += 20  // > 75%  → +20
+  else if (ratio >= 0.5)  score += 12  // > 50% → +12
+  else if (ratio >= 0.25) score += 6   // > 25% → +6
 
-  //  LIGHT
-  if (latest.light < 100) score += 20
-  else if (latest.light < 300) score += 10
-
-  // DURATION
-  const highHumidityCount = data.filter(d => d.humidity > 70).length
-
-  if (highHumidityCount > 10) score += 30
-  else if (highHumidityCount > 5) score += 20
-  else if (highHumidityCount > 3) score += 10
+  score = Math.min(score, 100)
 
   return Response.json({
     mri: score,
-    status:
-      score < 40 ? "LOW" :
-      score < 70 ? "MEDIUM" :
-      "HIGH"
+    status: getMRIStatus(score),
+    detail: {
+      baseScore: calculateMRI({
+        humidity: latest.humidity,
+        temperature: latest.temperature,
+        light: latest.light,
+      }),
+      durationBonus: score - calculateMRI({
+        humidity: latest.humidity,
+        temperature: latest.temperature,
+        light: latest.light,
+      }),
+      highHumidityRatio: Math.round(ratio * 100),
+      latest: {
+        humidity: latest.humidity,
+        temperature: latest.temperature,
+        light: latest.light,
+      }
+    }
   })
 }

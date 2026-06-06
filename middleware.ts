@@ -22,23 +22,38 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // refresh session supaya tidak expired
+  // Refresh session supaya tidak expired
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  const publicRoutes = ["/login"]
+
+  const publicRoutes = ["/login", "/register"]
   const isPublic = publicRoutes.some((route) => pathname.startsWith(route))
 
-  // belum login → redirect ke /login
+  // Belum login → redirect ke /login
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  // sudah login tapi buka /login → redirect ke dashboard
-  if (user && pathname === "/login") {
+  // Sudah login tapi buka /login atau /register → redirect ke dashboard
+  if (user && isPublic) {
     return NextResponse.redirect(new URL("/", request.url))
+  }
+
+  // Sudah login — cek apakah sudah punya rooms (kecuali kalau sedang di /onboarding)
+  if (user && pathname !== "/onboarding") {
+    const { data: rooms } = await supabase
+      .from("rooms")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1)
+
+    // Belum punya room → paksa ke onboarding
+    if (!rooms || rooms.length === 0) {
+      return NextResponse.redirect(new URL("/onboarding", request.url))
+    }
   }
 
   return response
