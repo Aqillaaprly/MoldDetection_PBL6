@@ -5,10 +5,7 @@ export default function LandingFooter() {
     <footer className="border-t border-slate-200 bg-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-6 md:flex-row md:items-center md:justify-between">
         <div className="max-w-sm">
-          <h3 className="mb-3 text-base font-bold text-blue-700">
-            MoldGuard
-          </h3>
-
+          <h3 className="mb-3 text-base font-bold text-indigo-600">MoldGuard</h3>
           <p className="text-sm leading-6 text-slate-500">
             A smart room monitoring system that helps you notice mold risk
             earlier and keep your indoor space healthier.
@@ -16,33 +13,10 @@ export default function LandingFooter() {
         </div>
 
         <div className="flex flex-wrap gap-6 text-sm text-slate-500">
-          <Link
-            href="#about"
-            className="transition hover:text-blue-700"
-          >
-            About
-          </Link>
-
-          <Link
-            href="#features"
-            className="transition hover:text-blue-700"
-          >
-            Features
-          </Link>
-
-          <Link
-            href="#how-it-works"
-            className="transition hover:text-blue-700"
-          >
-            How It Works
-          </Link>
-
-          <Link
-            href="#why"
-            className="transition hover:text-blue-700"
-          >
-            Why MoldGuard
-          </Link>
+          <Link href="#about" className="transition hover:text-indigo-600">About</Link>
+          <Link href="#features" className="transition hover:text-indigo-600">Features</Link>
+          <Link href="#how-it-works" className="transition hover:text-indigo-600">How It Works</Link>
+          <Link href="#why" className="transition hover:text-indigo-600">Why MoldGuard</Link>
         </div>
       </div>
 
