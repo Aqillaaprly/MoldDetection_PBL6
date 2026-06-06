@@ -1,0 +1,33 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - Aqilla
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+
+          script: |
+            cd /home/mold/MoldDetection_PBL6
+
+            git checkout Aqilla
+
+            git pull origin Aqilla
+
+            npm install
+
+            npm run build
+
+            pm2 restart mold-app

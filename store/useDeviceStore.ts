@@ -31,8 +31,8 @@ export const useDeviceStore = create<DeviceStore>((set, get) => ({
 
       const dbRooms = await res.json()
 
-      // Map dari DB format ke Room type (tambahkan device defaults)
       const rooms: Room[] = dbRooms.map((r: { id: number; name: string }) => ({
+        id: r.id,
         name: r.name,
         dehumidifier: { enabled: true, isOn: false, connectivity: "online" },
         exhaust: { enabled: true, isOn: false, connectivity: "online" },
