@@ -30,11 +30,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100">
-      <div className="w-[900px] md:w-[1000px] h-[440px] backdrop-blur-xl bg-white/80 rounded-2xl shadow-[0_20px_60px_rgba(99,102,241,0.25)] overflow-hidden grid grid-cols-2 animate-fadeIn">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-100 to-blue-100 p-4">
+      <div className="w-full max-w-4xl backdrop-blur-xl bg-white/80 rounded-2xl shadow-[0_20px_60px_rgba(99,102,241,0.25)] overflow-hidden grid grid-cols-1 md:grid-cols-2 animate-fadeIn">
 
         {/* LEFT */}
-        <div className="p-10 flex flex-col justify-center">
+        <div className="p-8 md:p-10 flex flex-col justify-center">
           <h2 className="text-3xl font-bold mb-2">Hello!</h2>
           <p className="text-gray-500 mb-6 text-sm">Sign in to your account</p>
 
@@ -81,7 +81,7 @@ export default function LoginPage() {
         </div>
 
         {/* RIGHT */}
-        <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 flex items-center justify-center text-white relative">
+        <div className="hidden md:flex bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 items-center justify-center text-white relative">
           <div className="absolute w-40 h-40 bg-white/20 rounded-full blur-3xl top-10 left-10" />
           <div className="text-center z-10">
             <h2 className="text-3xl font-bold mb-2">Welcome Back!</h2>
