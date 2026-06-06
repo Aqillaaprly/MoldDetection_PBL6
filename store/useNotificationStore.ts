@@ -16,7 +16,6 @@ interface NotificationState {
   clearNotifications: () => void
 }
 
-// Helper untuk generate ID tanpa crypto.randomUUID (tidak support HTTP)
 function generateId(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
 }
