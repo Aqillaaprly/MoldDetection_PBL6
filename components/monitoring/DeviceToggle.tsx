@@ -85,6 +85,26 @@ export default function DeviceToggle() {
     }
   }
 
+  const handleDehumidifierToggle = async () => {
+    setErrorMessage("")
+
+    try {
+      await toggleDevice(
+        selectedRoom,
+        "dehumidifier"
+      )
+
+      await loadDevicesFromApi()
+      selectDeviceByRoom(selectedRoom)
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to update device"
+      )
+    }
+  }
+
   const handleExhaustToggle = async () => {
     setErrorMessage("")
 
@@ -170,10 +190,12 @@ export default function DeviceToggle() {
           <Toggle
             name="Dehumidifier"
             state={currentRoom.dehumidifier.isOn}
-            onClick={() => {
-              // Dehumidifier belum mengontrol relay fisik.
-            }}
-            disabled={true}
+            onClick={handleDehumidifierToggle}
+            disabled={
+              mode === "AUTO" ||
+              isDeviceControlLoading ||
+              !selectedDeviceId
+            }
             icon={<AirVent size={18} />}
           />
         )}
