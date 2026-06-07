@@ -1,107 +1,160 @@
-import { createClient } from "@supabase/supabase-js"
-import { calculateMRI, getMRIStatus } from "@/lib/calculateMRI"
+import { supabaseAdmin } from "@/lib/supabaseAdmin"
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const runtime = "nodejs"
 
-export async function GET(req: Request) {
+type SensorRow = {
+  id: number
+  temperature: number | null
+  humidity: number | null
+  light: number | null
+  light_status: string | null
+  mold_risk: string | null
+  created_at: string | null
+}
+
+function calculateMRI(
+  temperature: number,
+  humidity: number,
+  light: number
+) {
+  let score = 0
+
+  if (humidity >= 80) {
+    score += 55
+  } else if (humidity >= 70) {
+    score += 40
+  } else if (humidity >= 60) {
+    score += 25
+  } else {
+    score += 10
+  }
+
+  if (temperature >= 25 && temperature <= 30) {
+    score += 25
+  } else if (temperature > 30) {
+    score += 20
+  } else if (temperature >= 20) {
+    score += 15
+  } else {
+    score += 5
+  }
+
+  // Di project kamu:
+  // LDR tinggi = terang
+  // LDR rendah = gelap
+  if (light < 2000) {
+    score += 20
+  } else {
+    score += 5
+  }
+
+  return Math.min(score, 100)
+}
+
+function getStatus(mri: number) {
+  if (mri >= 75) {
+    return "HIGH"
+  }
+
+  if (mri >= 45) {
+    return "MEDIUM"
+  }
+
+  return "LOW"
+}
+
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url)
-
-    const roomId = searchParams.get("roomId")
-
-    if (!roomId) {
-      return Response.json(
-        {
-          error: "roomId is required",
-        },
-        { status: 400 }
-      )
-    }
-
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("sensor_data")
-      .select("*")
-      .eq("room_id", Number(roomId))
+      .select(
+        `
+        id,
+        temperature,
+        humidity,
+        light,
+        light_status,
+        mold_risk,
+        created_at
+      `
+      )
       .order("created_at", {
         ascending: false,
       })
-      .limit(20)
+      .limit(1)
+      .maybeSingle()
 
     if (error) {
-      console.error("MRI QUERY ERROR:", error)
+      console.error("MRI Supabase error:", error)
 
       return Response.json(
         {
-          error: error.message,
+          success: true,
+          message: "MRI fallback because Supabase query failed",
+          mri: 0,
+          status: "LOW",
+          latest: null,
         },
-        { status: 500 }
+        { status: 200 }
       )
     }
 
-    if (!data || data.length === 0) {
+    if (!data) {
       return Response.json(
         {
-          error: "No sensor data found",
+          success: true,
+          message: "No sensor data available",
+          mri: 0,
+          status: "LOW",
+          latest: null,
         },
-        { status: 404 }
+        { status: 200 }
       )
     }
 
-    const latest = data[0]
+    const latest = data as SensorRow
 
-    const baseScore = calculateMRI({
-      humidity: latest.humidity,
-      temperature: latest.temperature,
-      light: latest.light,
-    })
+    const temperature = Number(latest.temperature ?? 0)
+    const humidity = Number(latest.humidity ?? 0)
+    const light = Number(latest.light ?? 0)
 
-    let score = baseScore
+    const mri = calculateMRI(
+      temperature,
+      humidity,
+      light
+    )
 
-    const highHumidityCount = data.filter(
-      (row) => row.humidity >= 80
-    ).length
-
-    const ratio =
-      highHumidityCount / data.length
-
-    if (ratio >= 0.75) {
-      score += 20
-    } else if (ratio >= 0.5) {
-      score += 12
-    } else if (ratio >= 0.25) {
-      score += 6
-    }
-
-    score = Math.min(score, 100)
-
-    return Response.json({
-      mri: score,
-      status: getMRIStatus(score),
-
-      detail: {
-        baseScore,
-        highHumidityRatio: Math.round(
-          ratio * 100
-        ),
-
-        latest: {
-          humidity: latest.humidity,
-          temperature: latest.temperature,
-          light: latest.light,
-        },
-      },
-    })
-  } catch (error) {
-    console.error(error)
+    const status = getStatus(mri)
 
     return Response.json(
       {
-        error: "Internal server error",
+        success: true,
+        mri,
+        status,
+        latest: {
+          id: latest.id,
+          temperature,
+          humidity,
+          light,
+          lightStatus: latest.light_status,
+          moldRisk: latest.mold_risk,
+          createdAt: latest.created_at,
+        },
       },
-      { status: 500 }
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error("GET /api/mri error:", error)
+
+    return Response.json(
+      {
+        success: true,
+        message: "MRI fallback because internal error occurred",
+        mri: 0,
+        status: "LOW",
+        latest: null,
+      },
+      { status: 200 }
     )
   }
 }

@@ -1,6 +1,9 @@
 "use client"
 
-import React from "react"
+import React, {
+  useEffect,
+  useState
+} from "react"
 
 import {
   Wind,
@@ -26,8 +29,34 @@ export default function DeviceToggle() {
     rooms,
     mode,
     setMode,
-    toggleDevice
+    toggleDevice,
+    loadDevicesFromApi,
+    selectDeviceByRoom,
+    selectedDeviceId,
+    isDeviceControlLoading
   } = useDeviceStore()
+
+  const [errorMessage, setErrorMessage] =
+    useState("")
+
+  useEffect(() => {
+    const load = async () => {
+      await loadDevicesFromApi()
+      selectDeviceByRoom(selectedRoom)
+    }
+
+    load()
+
+    const interval =
+      setInterval(load, 5000)
+
+    return () =>
+      clearInterval(interval)
+  }, [
+    selectedRoom,
+    loadDevicesFromApi,
+    selectDeviceByRoom
+  ])
 
   const currentRoom =
     rooms.find(
@@ -35,28 +64,100 @@ export default function DeviceToggle() {
         room.name === selectedRoom
     )
 
+  const handleModeClick = async () => {
+    setErrorMessage("")
+
+    const nextMode =
+      mode === "AUTO"
+        ? "MANUAL"
+        : "AUTO"
+
+    try {
+      await setMode(nextMode)
+      await loadDevicesFromApi()
+      selectDeviceByRoom(selectedRoom)
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to update mode"
+      )
+    }
+  }
+
+  const handleDehumidifierToggle = async () => {
+    setErrorMessage("")
+
+    try {
+      await toggleDevice(
+        selectedRoom,
+        "dehumidifier"
+      )
+
+      await loadDevicesFromApi()
+      selectDeviceByRoom(selectedRoom)
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to update device"
+      )
+    }
+  }
+
+  const handleExhaustToggle = async () => {
+    setErrorMessage("")
+
+    try {
+      await toggleDevice(
+        selectedRoom,
+        "exhaust"
+      )
+
+      await loadDevicesFromApi()
+      selectDeviceByRoom(selectedRoom)
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to update device"
+      )
+    }
+  }
+
   if (!currentRoom) {
     return (
-      <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-2xl shadow-sm">
+      <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm">
+
         <div className="flex justify-between mb-6">
+
           <h3 className="font-semibold text-lg">
             {selectedRoom} Device Control
           </h3>
 
-          <button className="text-sm font-medium text-indigo-600">
+          <button
+            onClick={handleModeClick}
+            disabled={
+              isDeviceControlLoading ||
+              !selectedDeviceId
+            }
+            className="text-sm font-medium text-indigo-600 disabled:opacity-50"
+          >
             {mode}
           </button>
+
         </div>
 
         <p className="text-sm text-gray-500 dark:text-gray-400">
           No device registered for this room.
         </p>
+
       </div>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-2xl shadow-sm">
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm">
 
       <div className="flex justify-between mb-6">
 
@@ -65,35 +166,36 @@ export default function DeviceToggle() {
         </h3>
 
         <button
-          onClick={() =>
-            setMode(
-              mode === "AUTO"
-                ? "MANUAL"
-                : "AUTO"
-            )
+          onClick={handleModeClick}
+          disabled={
+            isDeviceControlLoading ||
+            !selectedDeviceId
           }
-          className="text-sm font-medium text-indigo-600"
+          className="text-sm font-medium text-indigo-600 disabled:opacity-50"
         >
           {mode}
         </button>
 
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+      {errorMessage && (
+        <p className="mb-4 text-sm text-red-500">
+          {errorMessage}
+        </p>
+      )}
+
+      <div className="grid md:grid-cols-2 gap-6">
 
         {currentRoom.dehumidifier.enabled && (
           <Toggle
             name="Dehumidifier"
-            state={
-              currentRoom.dehumidifier.isOn
+            state={currentRoom.dehumidifier.isOn}
+            onClick={handleDehumidifierToggle}
+            disabled={
+              mode === "AUTO" ||
+              isDeviceControlLoading ||
+              !selectedDeviceId
             }
-            onClick={() =>
-              toggleDevice(
-                selectedRoom,
-                "dehumidifier"
-              )
-            }
-            disabled={mode === "AUTO"}
             icon={<AirVent size={18} />}
           />
         )}
@@ -101,21 +203,19 @@ export default function DeviceToggle() {
         {currentRoom.exhaust.enabled && (
           <Toggle
             name="Exhaust Fan"
-            state={
-              currentRoom.exhaust.isOn
+            state={currentRoom.exhaust.isOn}
+            onClick={handleExhaustToggle}
+            disabled={
+              mode === "AUTO" ||
+              isDeviceControlLoading ||
+              !selectedDeviceId
             }
-            onClick={() =>
-              toggleDevice(
-                selectedRoom,
-                "exhaust"
-              )
-            }
-            disabled={mode === "AUTO"}
             icon={<Wind size={18} />}
           />
         )}
 
       </div>
+
     </div>
   )
 }
@@ -129,7 +229,7 @@ function Toggle({
 }: ToggleProps) {
   return (
     <div
-      className={`flex items-center justify-between p-3.5 rounded-xl transition-all
+      className={`flex items-center justify-between p-4 rounded-xl transition-all
       ${
         state
           ? "bg-indigo-500 text-white"
@@ -139,6 +239,7 @@ function Toggle({
     >
 
       <div className="flex items-center gap-3">
+
         <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/20">
           {icon}
         </div>
@@ -152,6 +253,7 @@ function Toggle({
             {state ? "ON" : "OFF"}
           </p>
         </div>
+
       </div>
 
       <button
