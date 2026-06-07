@@ -16,7 +16,7 @@ export default function CtaSection() {
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Link
             href="/register"
-            className="inline-flex rounded-xl bg-white px-8 py-3 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
+            className="inline-flex rounded-xl bg-white px-8 py-3 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50"
           >
             Get Started Free
           </Link>

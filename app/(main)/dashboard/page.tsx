@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useDeviceStore } from "@/store/useDeviceStore"
 import { useRiskNotifier } from "@/hooks/useRiskNotifier"
+import MLPredictionCard from "@/components/dashboard/MLPredictionCard"
+import MLRiskCard from "@/components/dashboard/MLRiskCard"
 
 import {
   Home,
@@ -170,37 +172,52 @@ export default function DashboardOverview() {
 
       {/* ─── STAT CARD ────────────────────────── */}
 
-      <div className="grid grid-cols-2 gap-3 w-full sm:max-w-md">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-        <StatCard
-          icon={
-            <Home
-              size={20}
-              className="text-indigo-500"
-            />
-          }
-          iconBg="bg-indigo-50 dark:bg-indigo-900/30"
-          label="Total Rooms"
-          value={totalRooms}
-          sub="Monitored"
-        />
+        {/* KIRI */}
+        <div className="lg:col-span-1">
+          
+          {/* Mobile: 2 kolom, Desktop: 1 kolom */}
+          <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
 
-        <StatCard
-          icon={
-            <AlertTriangle
-              size={20}
-              className="text-red-500"
+            <StatCard
+              icon={
+                <Home
+                  size={20}
+                  className="text-indigo-500"
+                />
+              }
+              iconBg="bg-indigo-50 dark:bg-indigo-900/30"
+              label="Total Rooms"
+              value={totalRooms}
+              sub="Monitored"
             />
-          }
-          iconBg="bg-red-50 dark:bg-red-900/30"
-          label="High Risk Rooms"
-          value={highRiskCount}
-          sub={
-            totalRooms > 0
-              ? `${((highRiskCount / totalRooms) * 100).toFixed(0)}% of total`
-              : "0% of total"
-          }
-        />
+
+            <StatCard
+              icon={
+                <AlertTriangle
+                  size={20}
+                  className="text-red-500"
+                />
+              }
+              iconBg="bg-red-50 dark:bg-red-900/30"
+              label="High Risk Rooms"
+              value={highRiskCount}
+              sub={
+                totalRooms > 0
+                  ? `${((highRiskCount / totalRooms) * 100).toFixed(0)}% of total`
+                  : "0% of total"
+              }
+            />
+
+          </div>
+
+        </div>
+
+        {/* KANAN */}
+        <div className="lg:col-span-4">
+          <MLRiskCard />
+        </div>
 
       </div>
 

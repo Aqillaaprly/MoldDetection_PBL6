@@ -54,7 +54,7 @@ export default function SensorCard() {
       />
 
       <Card
-        title="LIGHT INTENSITY"
+        title="LIGHT"
         value={`${light} lux`}
         icon={<Sun size={18} />}
         status={light > 700 ? "HIGH" : "NORMAL"}
