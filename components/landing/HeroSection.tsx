@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 
 export default function HeroSection() {
   return (
@@ -39,11 +40,16 @@ export default function HeroSection() {
       </div>
 
       <div className="rounded-3xl bg-white p-3 shadow-2xl shadow-slate-300">
-        <img
-          src="/images/landing/hero-dashboard.png"
-          alt="MoldGuard dashboard preview"
-          className="h-[260px] w-full rounded-2xl object-cover md:h-[360px]"
-        />
+        <div className="relative h-[260px] md:h-[260px] w-full rounded-2xl overflow-hidden bg-gray-50">
+          <Image
+            src="/images/landing/hero-dashboard.png"
+            alt="MoldGuard dashboard preview"
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-contain object-center"
+            priority
+          />
+        </div>
       </div>
     </section>
   )
