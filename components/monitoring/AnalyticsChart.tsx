@@ -1,267 +1,259 @@
 "use client"
 
-import { useEffect, useState } from "react"
-
-import { useRoomStore } from "@/store/useRoomStore"
+import {
+  useEffect,
+  useState
+} from "react"
 
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  CartesianGrid
+  ResponsiveContainer
 } from "recharts"
 
+import { useRoomStore } from "@/store/useRoomStore"
 import { getTrendData } from "@/services/sensorService"
 import { MetricData } from "@/types/sensor"
 
-const METRICS = [
-  {
-    key: "humidity",
-    label: "Humidity (%)",
-    color: "#42a785",
-    unit: "%",
-    axis: "left"
-  },
-  {
-    key: "temperature",
-    label: "Temperature (°C)",
-    color: "#f97316",
-    unit: "°C",
-    axis: "left"
-  },
-  {
-    key: "light",
-    label: "Light (lux)",
-    color: "#8b5cf6",
-    unit: " lux",
-    axis: "right"
+type MetricKey =
+  | "humidity"
+  | "temperature"
+  | "light"
+
+type TooltipPayloadItem = {
+  name?: string
+  value?: number | string
+  color?: string
+  dataKey?: string
+}
+
+type CustomTooltipProps = {
+  active?: boolean
+  payload?: TooltipPayloadItem[]
+  label?: string | number
+}
+
+function CustomTooltip({
+  active,
+  payload,
+  label
+}: CustomTooltipProps) {
+  if (!active || !payload || payload.length === 0) {
+    return null
   }
-]
+
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm px-4 py-3">
+      <p className="text-xs font-medium text-gray-500 mb-2">
+        {label}
+      </p>
+
+      <div className="space-y-1">
+        {payload.map((
+          item: TooltipPayloadItem,
+          index: number
+        ) => (
+          <p
+            key={`${item.dataKey ?? index}`}
+            className="text-xs text-gray-700 dark:text-gray-200"
+          >
+            {item.name}: {item.value}
+          </p>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function AnalyticsChart() {
-  const { selectedRoom } = useRoomStore()
+  const { selectedRoom } =
+    useRoomStore()
 
-  const [data, setData] = useState<MetricData[]>([])
+  const [chartData, setChartData] =
+    useState<MetricData[]>([])
 
-  const [activeMetrics, setActiveMetrics] = useState<string[]>([
-    "humidity",
-    "temperature",
-    "light"
-  ])
+  const [activeMetrics, setActiveMetrics] =
+    useState<MetricKey[]>([
+      "humidity",
+      "temperature",
+      "light"
+    ])
 
   useEffect(() => {
-    const loadTrendData = async () => {
-      try {
-        if (!selectedRoom) {
-          setData([])
-          return
-        }
+    const load = async () => {
+      const data =
+        await getTrendData(selectedRoom)
 
-        const trend = await getTrendData(selectedRoom)
-        setData(trend)
-      } catch (error) {
-        console.error("Error loading analytics chart:", error)
-      }
+      setChartData(data)
     }
 
-    loadTrendData()
+    load()
 
-    const interval = setInterval(loadTrendData, 5000)
+    const interval =
+      setInterval(load, 5000)
 
-    return () => clearInterval(interval)
+    return () =>
+      clearInterval(interval)
   }, [selectedRoom])
 
-  const toggleMetric = (key: string) => {
-    setActiveMetrics((prev) =>
-      prev.includes(key)
-        ? prev.length > 1
-          ? prev.filter((m) => m !== key)
-          : prev
-        : [...prev, key]
-    )
-  }
+  const toggleMetric = (metric: MetricKey) => {
+    setActiveMetrics((current) => {
+      if (current.includes(metric)) {
+        return current.filter(
+          (item) => item !== metric
+        )
+      }
 
-  const CustomTooltip = ({
-    active,
-    payload,
-    label
-  }: any) => {
-    if (!active || !payload?.length) return null
-
-    return (
-      <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg px-4 py-3 text-sm">
-        <p className="text-gray-400 text-xs mb-2">
-          {label}
-        </p>
-        {payload.map((entry: any) => {
-          const metric = METRICS.find(
-            (m) => m.key === entry.dataKey
-          )
-          return (
-            <div
-              key={entry.dataKey}
-              className="flex items-center gap-2 py-0.5"
-            >
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ backgroundColor: entry.color }}
-              />
-              <span className="text-gray-500 dark:text-gray-400 min-w-[120px]">
-                {metric?.label}
-              </span>
-              <span
-                className="font-semibold"
-                style={{ color: entry.color }}
-              >
-                {entry.value}
-                {metric?.unit}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    )
+      return [
+        ...current,
+        metric
+      ]
+    })
   }
 
   return (
     <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
 
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+
         <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
           Analytics
         </h3>
 
-        {/* Metric toggles */}
-        <div className="flex items-center gap-2">
-          {METRICS.map((metric) => {
-            const isActive = activeMetrics.includes(metric.key)
-            return (
-              <button
-                key={metric.key}
-                onClick={() => toggleMetric(metric.key)}
-                className={`
-                  flex items-center gap-1.5 text-xs font-medium
-                  px-3 py-1.5 rounded-full border transition-all
-                  ${isActive
-                    ? "border-transparent text-white"
-                    : "border-gray-200 dark:border-gray-700 text-gray-400 bg-transparent"
-                  }
-                `}
-                style={
-                  isActive
-                    ? { backgroundColor: metric.color }
-                    : {}
-                }
-              >
-                <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{
-                    backgroundColor: isActive
-                      ? "white"
-                      : metric.color
-                  }}
-                />
-                {metric.label}
-              </button>
-            )
-          })}
+        <div className="flex flex-wrap gap-2">
+
+          <button
+            onClick={() => toggleMetric("humidity")}
+            className={`px-4 py-2 rounded-full text-xs font-medium transition
+              ${
+                activeMetrics.includes("humidity")
+                  ? "bg-emerald-500 text-white"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-500"
+              }
+            `}
+          >
+            Humidity (%)
+          </button>
+
+          <button
+            onClick={() => toggleMetric("temperature")}
+            className={`px-4 py-2 rounded-full text-xs font-medium transition
+              ${
+                activeMetrics.includes("temperature")
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-500"
+              }
+            `}
+          >
+            Temperature (°C)
+          </button>
+
+          <button
+            onClick={() => toggleMetric("light")}
+            className={`px-4 py-2 rounded-full text-xs font-medium transition
+              ${
+                activeMetrics.includes("light")
+                  ? "bg-violet-500 text-white"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-500"
+              }
+            `}
+          >
+            Light (lux)
+          </button>
+
         </div>
+
       </div>
 
-      <ResponsiveContainer width="100%" height={260}>
-        <LineChart
-          data={data}
-          margin={{ top: 4, right: 5, left: -10, bottom: 0 }}
+      <div className="h-[280px] min-h-[280px] w-full min-w-0">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
         >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="#f0f0f0"
-          />
-
-          <XAxis
-            dataKey="time"
-            tick={{ fontSize: 11, fill: "#9ca3af" }}
-            tickLine={false}
-            axisLine={false}
-          />
-
-          {/* Kiri: % / °C */}
-          <YAxis
-            yAxisId="left"
-            domain={[0, 100]}
-            tick={{ fontSize: 11, fill: "#9ca3af" }}
-            tickLine={false}
-            axisLine={false}
-            label={{
-              value: "% / °C",
-              angle: -90,
-              position: "insideLeft",
-              offset: 15,
-              style: { fontSize: 10, fill: "#9ca3af" }
+          <LineChart
+            data={chartData}
+            margin={{
+              top: 10,
+              right: 20,
+              left: 0,
+              bottom: 0
             }}
-          />
-
-          {/* Kanan: lux */}
-          <YAxis
-            yAxisId="right"
-            orientation="right"
-            domain={[0, 1000]}
-            tick={{ fontSize: 11, fill: "#9ca3af" }}
-            tickLine={false}
-            axisLine={false}
-            label={{
-              value: "lux",
-              angle: 90,
-              position: "insideRight",
-              offset: 15,
-              style: { fontSize: 10, fill: "#9ca3af" }
-            }}
-          />
-
-          <Tooltip content={<CustomTooltip />} />
-
-          {activeMetrics.includes("humidity") && (
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="humidity"
-              stroke="#42a785"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={true}
+              opacity={0.3}
             />
-          )}
 
-          {activeMetrics.includes("temperature") && (
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="temperature"
-              stroke="#f97316"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4 }}
+            <XAxis
+              dataKey="time"
+              tick={{
+                fontSize: 12
+              }}
             />
-          )}
 
-          {activeMetrics.includes("light") && (
-            <Line
+            <YAxis
+              yAxisId="left"
+              tick={{
+                fontSize: 12
+              }}
+              domain={[0, 100]}
+            />
+
+            <YAxis
               yAxisId="right"
-              type="monotone"
-              dataKey="light"
-              stroke="#8b5cf6"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4 }}
+              orientation="right"
+              tick={{
+                fontSize: 12
+              }}
+              domain={[0, 1000]}
             />
-          )}
 
-        </LineChart>
-      </ResponsiveContainer>
+            <Tooltip content={<CustomTooltip />} />
+
+            {activeMetrics.includes("humidity") && (
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="humidity"
+                name="Humidity"
+                stroke="#10b981"
+                strokeWidth={2}
+                dot={false}
+              />
+            )}
+
+            {activeMetrics.includes("temperature") && (
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="temperature"
+                name="Temperature"
+                stroke="#f97316"
+                strokeWidth={2}
+                dot={false}
+              />
+            )}
+
+            {activeMetrics.includes("light") && (
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="light"
+                name="Light"
+                stroke="#8b5cf6"
+                strokeWidth={2}
+                dot={false}
+              />
+            )}
+
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
 
     </div>
   )

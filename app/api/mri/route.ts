@@ -1,43 +1,160 @@
-import { supabase } from '@/lib/supabase'
-import { calculateMRI, getMRIStatus } from '@/lib/calculateMRI'
+import { supabaseAdmin } from "@/lib/supabaseAdmin"
 
-export async function GET() {
-  const { data, error } = await supabase
-    .from('sensor_data')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(20)
+export const runtime = "nodejs"
 
-  if (error || !data || data.length === 0) {
-    return Response.json(
-      { error: 'Failed to fetch data' },
-      { status: 500 }
-    )
+type SensorRow = {
+  id: number
+  temperature: number | null
+  humidity: number | null
+  light: number | null
+  light_status: string | null
+  mold_risk: string | null
+  created_at: string | null
+}
+
+function calculateMRI(
+  temperature: number,
+  humidity: number,
+  light: number
+) {
+  let score = 0
+
+  if (humidity >= 80) {
+    score += 55
+  } else if (humidity >= 70) {
+    score += 40
+  } else if (humidity >= 60) {
+    score += 25
+  } else {
+    score += 10
   }
 
-  const latest = data[0]
+  if (temperature >= 25 && temperature <= 30) {
+    score += 25
+  } else if (temperature > 30) {
+    score += 20
+  } else if (temperature >= 20) {
+    score += 15
+  } else {
+    score += 5
+  }
 
-  // Base score dari shared utility (sama dengan dashboard)
-  let score = calculateMRI({
-    humidity: latest.humidity,
-    temperature: latest.temperature,
-    light: latest.light
-  })
+  // Di project kamu:
+  // LDR tinggi = terang
+  // LDR rendah = gelap
+  if (light < 2000) {
+    score += 20
+  } else {
+    score += 5
+  }
 
-  // Durasi histori — hanya bisa dihitung di server karena butuh data Supabase
-  const highHumidityCount = data.filter(
-    (d) => d.humidity > 70
-  ).length
+  return Math.min(score, 100)
+}
 
-  if (highHumidityCount > 15) score += 30
-  else if (highHumidityCount > 10) score += 20
-  else if (highHumidityCount > 5) score += 10
+function getStatus(mri: number) {
+  if (mri >= 75) {
+    return "HIGH"
+  }
 
-  // Cap score di 100
-  score = Math.min(score, 100)
+  if (mri >= 45) {
+    return "MEDIUM"
+  }
 
-  return Response.json({
-    mri: score,
-    status: getMRIStatus(score)
-  })
+  return "LOW"
+}
+
+export async function GET() {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("sensor_data")
+      .select(
+        `
+        id,
+        temperature,
+        humidity,
+        light,
+        light_status,
+        mold_risk,
+        created_at
+      `
+      )
+      .order("created_at", {
+        ascending: false,
+      })
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      console.error("MRI Supabase error:", error)
+
+      return Response.json(
+        {
+          success: true,
+          message: "MRI fallback because Supabase query failed",
+          mri: 0,
+          status: "LOW",
+          latest: null,
+        },
+        { status: 200 }
+      )
+    }
+
+    if (!data) {
+      return Response.json(
+        {
+          success: true,
+          message: "No sensor data available",
+          mri: 0,
+          status: "LOW",
+          latest: null,
+        },
+        { status: 200 }
+      )
+    }
+
+    const latest = data as SensorRow
+
+    const temperature = Number(latest.temperature ?? 0)
+    const humidity = Number(latest.humidity ?? 0)
+    const light = Number(latest.light ?? 0)
+
+    const mri = calculateMRI(
+      temperature,
+      humidity,
+      light
+    )
+
+    const status = getStatus(mri)
+
+    return Response.json(
+      {
+        success: true,
+        mri,
+        status,
+        latest: {
+          id: latest.id,
+          temperature,
+          humidity,
+          light,
+          lightStatus: latest.light_status,
+          moldRisk: latest.mold_risk,
+          createdAt: latest.created_at,
+        },
+      },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error("GET /api/mri error:", error)
+
+    return Response.json(
+      {
+        success: true,
+        message: "MRI fallback because internal error occurred",
+        mri: 0,
+        status: "LOW",
+        latest: null,
+      },
+      { status: 200 }
+    )
+  }
 }
