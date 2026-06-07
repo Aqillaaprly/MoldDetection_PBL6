@@ -1,40 +1,79 @@
-import { supabaseAdmin } from "@/lib/supabaseAdmin"
+import { NextResponse } from "next/server"
+import { createSupabaseServerClient } from "@/lib/supabase-server"
 
-export const runtime = "nodejs"
-
+// GET: ambil rooms milik user yang sedang login
 export async function GET() {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from("rooms")
-      .select("*")
-      .order("id", { ascending: true })
+  const supabase = await createSupabaseServerClient()
 
-    if (error) {
-      return Response.json(
-        {
-          success: false,
-          message: "Failed to fetch rooms",
-          error: error.message,
-        },
-        { status: 500 }
-      )
-    }
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    return Response.json(
-      {
-        success: true,
-        data: data ?? [],
-      },
-      { status: 200 }
-    )
-  } catch (error) {
-    return Response.json(
-      {
-        success: false,
-        message: "Internal server error",
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    )
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+
+  const { data, error } = await supabase
+    .from("rooms")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("id")
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json(data)
+}
+
+// POST: buat room baru untuk user yang login
+export async function POST(req: Request) {
+  const supabase = await createSupabaseServerClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { name } = await req.json()
+
+  if (!name?.trim()) {
+    return NextResponse.json({ error: "Nama room tidak boleh kosong" }, { status: 400 })
+  }
+
+  const { data, error } = await supabase
+    .from("rooms")
+    .insert({ name: name.trim(), user_id: user.id })
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json(data, { status: 201 })
+}
+
+// DELETE: hapus room milik user
+export async function DELETE(req: Request) {
+  const supabase = await createSupabaseServerClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { id } = await req.json()
+
+  const { error } = await supabase
+    .from("rooms")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id) // pastikan hanya bisa hapus milik sendiri
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true })
 }

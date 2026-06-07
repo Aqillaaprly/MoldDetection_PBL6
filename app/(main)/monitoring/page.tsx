@@ -225,23 +225,21 @@ export default function Monitoring() {
   ])
 
   return (
+    <div className="space-y-4 sm:space-y-5 pb-6">
 
-    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
 
-      <div className="flex justify-between items-center">
-
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl sm:text-2xl font-bold text-gray-900 dark:text-white">
           Monitoring
         </h1>
 
         <select
           value={selectedRoom}
           onChange={(e) =>
-            setSelectedRoom(
-              e.target.value
-            )
+            setSelectedRoom(e.target.value)
           }
           className="
+            w-full sm:w-auto
             bg-white dark:bg-gray-800
             text-gray-700 dark:text-gray-200
             border border-gray-200 dark:border-gray-700
@@ -255,9 +253,7 @@ export default function Monitoring() {
             focus:ring-indigo-500
           "
         >
-
           {rooms.map((room, i) => (
-
             <option
               key={i}
               value={room.name}
@@ -265,31 +261,23 @@ export default function Monitoring() {
             >
               {room.name}
             </option>
-
           ))}
-
         </select>
 
       </div>
 
       <SensorCard />
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
 
-        <div className="lg:col-span-2 space-y-6">
-
+        <div className="lg:col-span-2 space-y-4 sm:space-y-5">
           <AnalyticsChart />
-
           <DeviceToggle />
-
         </div>
 
-        <div className="space-y-6">
-
+        <div className="space-y-4 sm:space-y-5">
           <MoldRiskCard />
-
           <ActivityTimeline />
-
         </div>
 
       </div>

@@ -22,12 +22,12 @@ export function getRiskLevel(hub: SensorHub): RiskLevel {
   const score = calculateMRI({
     humidity: hub.humidity,
     temperature: hub.temperature,
-    light: hub.light
+    light: hub.light,
   })
 
   const status = getMRIStatus(score)
 
-  if (status === "HIGH") return "HIGH RISK"
+  if (status === "HIGH")   return "HIGH RISK"
   if (status === "MEDIUM") return "MEDIUM RISK"
   return "NORMAL"
 }
@@ -40,21 +40,18 @@ export function getRiskConfig(risk: RiskLevel) {
         border: "border-red-300",
         glow: "shadow-red-100"
       }
-
     case "MEDIUM RISK":
       return {
         badge: "bg-orange-100 text-orange-600 border border-orange-200",
         border: "border-orange-200",
         glow: "shadow-orange-50"
       }
-
     case "NORMAL":
       return {
         badge: "bg-green-100 text-green-600 border border-green-200",
         border: "border-gray-200",
         glow: ""
       }
-
     case "OFFLINE":
       return {
         badge: "bg-gray-100 text-gray-500 border border-gray-200",

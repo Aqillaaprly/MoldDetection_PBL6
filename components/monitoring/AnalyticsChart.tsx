@@ -1,40 +1,59 @@
 "use client"
 
-import {
-  useEffect,
-  useState
-} from "react"
+import { useEffect, useState } from "react"
+
+import { useRoomStore } from "@/store/useRoomStore"
 
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  CartesianGrid
 } from "recharts"
 
-import { useRoomStore } from "@/store/useRoomStore"
 import { getTrendData } from "@/services/sensorService"
 import { MetricData } from "@/types/sensor"
 
-type MetricKey =
-  | "humidity"
-  | "temperature"
-  | "light"
+const METRICS = [
+  {
+    key: "humidity",
+    label: "Humidity (%)",
+    mobileLabel: "Hum (%)",
+    color: "#42a785",
+    unit: "%",
+    axis: "left"
+  },
+  {
+    key: "temperature",
+    label: "Temperature (°C)",
+    mobileLabel: "Temp (°C)",
+    color: "#f97316",
+    unit: "°C",
+    axis: "left"
+  },
+  {
+    key: "light",
+    label: "Light (lux)",
+    mobileLabel: "Light (lux)",
+    color: "#8b5cf6",
+    unit: " lux",
+    axis: "right"
+  }
+]
 
-type TooltipPayloadItem = {
-  name?: string
-  value?: number | string
-  color?: string
+type TooltipPayload = {
   dataKey?: string
+  value?: number
+  color?: string
 }
 
 type CustomTooltipProps = {
   active?: boolean
-  payload?: TooltipPayloadItem[]
-  label?: string | number
+  payload?: TooltipPayload[]
+  label?: string
 }
 
 function CustomTooltip({
@@ -42,219 +61,232 @@ function CustomTooltip({
   payload,
   label
 }: CustomTooltipProps) {
-  if (!active || !payload || payload.length === 0) {
-    return null
-  }
+  if (!active || !payload?.length) return null
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm px-4 py-3">
-      <p className="text-xs font-medium text-gray-500 mb-2">
+    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-lg px-4 py-3 text-sm">
+      <p className="text-gray-400 text-xs mb-2">
         {label}
       </p>
 
-      <div className="space-y-1">
-        {payload.map((
-          item: TooltipPayloadItem,
-          index: number
-        ) => (
-          <p
-            key={`${item.dataKey ?? index}`}
-            className="text-xs text-gray-700 dark:text-gray-200"
+      {payload.map((entry) => {
+        const metric = METRICS.find(
+          (m) => m.key === entry.dataKey
+        )
+
+        return (
+          <div
+            key={entry.dataKey}
+            className="flex items-center gap-2 py-0.5"
           >
-            {item.name}: {item.value}
-          </p>
-        ))}
-      </div>
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: entry.color }}
+            />
+
+            <span className="text-gray-500 dark:text-gray-400 min-w-[120px]">
+              {metric?.label}
+            </span>
+
+            <span
+              className="font-semibold"
+              style={{ color: entry.color }}
+            >
+              {entry.value}
+              {metric?.unit}
+            </span>
+          </div>
+        )
+      })}
     </div>
   )
 }
 
 export default function AnalyticsChart() {
-  const { selectedRoom } =
-    useRoomStore()
+  const { selectedRoom } = useRoomStore()
 
-  const [chartData, setChartData] =
-    useState<MetricData[]>([])
+  const [data, setData] = useState<MetricData[]>([])
 
-  const [activeMetrics, setActiveMetrics] =
-    useState<MetricKey[]>([
-      "humidity",
-      "temperature",
-      "light"
-    ])
+  const [activeMetrics, setActiveMetrics] = useState<string[]>([
+    "humidity",
+    "temperature",
+    "light"
+  ])
 
   useEffect(() => {
-    const load = async () => {
-      const data =
-        await getTrendData(selectedRoom)
+    const loadTrendData = async () => {
+      try {
+        if (!selectedRoom) {
+          setData([])
+          return
+        }
 
-      setChartData(data)
+        const trend = await getTrendData(selectedRoom)
+        setData(trend)
+      } catch (error) {
+        console.error("Error loading analytics chart:", error)
+      }
     }
 
-    load()
+    loadTrendData()
 
-    const interval =
-      setInterval(load, 5000)
+    const interval = setInterval(loadTrendData, 5000)
 
-    return () =>
-      clearInterval(interval)
+    return () => clearInterval(interval)
   }, [selectedRoom])
 
-  const toggleMetric = (metric: MetricKey) => {
-    setActiveMetrics((current) => {
-      if (current.includes(metric)) {
-        return current.filter(
-          (item) => item !== metric
-        )
-      }
-
-      return [
-        ...current,
-        metric
-      ]
-    })
+  const toggleMetric = (key: string) => {
+    setActiveMetrics((prev) =>
+      prev.includes(key)
+        ? prev.length > 1
+          ? prev.filter((m) => m !== key)
+          : prev
+        : [...prev, key]
+    )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-
+    <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-5">
         <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
           Analytics
         </h3>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
+          {METRICS.map((metric) => {
+            const isActive = activeMetrics.includes(metric.key)
 
-          <button
-            onClick={() => toggleMetric("humidity")}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition
-              ${
-                activeMetrics.includes("humidity")
-                  ? "bg-emerald-500 text-white"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-500"
-              }
-            `}
-          >
-            Humidity (%)
-          </button>
+            return (
+              <button
+                key={metric.key}
+                onClick={() => toggleMetric(metric.key)}
+                className={`
+                  flex items-center gap-1.5 text-xs font-medium
+                  px-3 py-1.5 rounded-full border transition-all
+                  whitespace-nowrap shrink-0
+                  ${
+                    isActive
+                      ? "border-transparent text-white"
+                      : "border-gray-200 dark:border-gray-700 text-gray-400 bg-transparent"
+                  }
+                `}
+                style={
+                  isActive
+                    ? { backgroundColor: metric.color }
+                    : {}
+                }
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    backgroundColor: isActive
+                      ? "white"
+                      : metric.color
+                  }}
+                />
 
-          <button
-            onClick={() => toggleMetric("temperature")}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition
-              ${
-                activeMetrics.includes("temperature")
-                  ? "bg-orange-500 text-white"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-500"
-              }
-            `}
-          >
-            Temperature (°C)
-          </button>
+                <>
+                  <span className="sm:hidden">
+                    {metric.mobileLabel}
+                  </span>
 
-          <button
-            onClick={() => toggleMetric("light")}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition
-              ${
-                activeMetrics.includes("light")
-                  ? "bg-violet-500 text-white"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-500"
-              }
-            `}
-          >
-            Light (lux)
-          </button>
-
+                  <span className="hidden sm:inline">
+                    {metric.label}
+                  </span>
+                </>
+              </button>
+            )
+          })}
         </div>
-
       </div>
 
-      <div className="h-[280px] min-h-[280px] w-full min-w-0">
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
+      <ResponsiveContainer width="100%" height={260}>
+        <LineChart
+          data={data}
+          margin={{ top: 4, right: 5, left: -10, bottom: 0 }}
         >
-          <LineChart
-            data={chartData}
-            margin={{
-              top: 10,
-              right: 20,
-              left: 0,
-              bottom: 0
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#f0f0f0"
+          />
+
+          <XAxis
+            dataKey="time"
+            tick={{ fontSize: 11, fill: "#9ca3af" }}
+            tickLine={false}
+            axisLine={false}
+          />
+
+          <YAxis
+            yAxisId="left"
+            domain={[0, 100]}
+            tick={{ fontSize: 11, fill: "#9ca3af" }}
+            tickLine={false}
+            axisLine={false}
+            label={{
+              value: "% / °C",
+              angle: -90,
+              position: "insideLeft",
+              offset: 15,
+              style: { fontSize: 10, fill: "#9ca3af" }
             }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={true}
-              opacity={0.3}
-            />
+          />
 
-            <XAxis
-              dataKey="time"
-              tick={{
-                fontSize: 12
-              }}
-            />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            domain={[0, 1000]}
+            tick={{ fontSize: 11, fill: "#9ca3af" }}
+            tickLine={false}
+            axisLine={false}
+            label={{
+              value: "lux",
+              angle: 90,
+              position: "insideRight",
+              offset: 15,
+              style: { fontSize: 10, fill: "#9ca3af" }
+            }}
+          />
 
-            <YAxis
+          <Tooltip content={<CustomTooltip />} />
+
+          {activeMetrics.includes("humidity") && (
+            <Line
               yAxisId="left"
-              tick={{
-                fontSize: 12
-              }}
-              domain={[0, 100]}
+              type="monotone"
+              dataKey="humidity"
+              stroke="#42a785"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
             />
+          )}
 
-            <YAxis
+          {activeMetrics.includes("temperature") && (
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="temperature"
+              stroke="#f97316"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
+            />
+          )}
+
+          {activeMetrics.includes("light") && (
+            <Line
               yAxisId="right"
-              orientation="right"
-              tick={{
-                fontSize: 12
-              }}
-              domain={[0, 1000]}
+              type="monotone"
+              dataKey="light"
+              stroke="#8b5cf6"
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 4 }}
             />
-
-            <Tooltip content={<CustomTooltip />} />
-
-            {activeMetrics.includes("humidity") && (
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="humidity"
-                name="Humidity"
-                stroke="#10b981"
-                strokeWidth={2}
-                dot={false}
-              />
-            )}
-
-            {activeMetrics.includes("temperature") && (
-              <Line
-                yAxisId="left"
-                type="monotone"
-                dataKey="temperature"
-                name="Temperature"
-                stroke="#f97316"
-                strokeWidth={2}
-                dot={false}
-              />
-            )}
-
-            {activeMetrics.includes("light") && (
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="light"
-                name="Light"
-                stroke="#8b5cf6"
-                strokeWidth={2}
-                dot={false}
-              />
-            )}
-
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
+          )}
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   )
 }

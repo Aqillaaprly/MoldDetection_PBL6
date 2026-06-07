@@ -10,24 +10,25 @@ interface Activity {
 
 interface ActivityState {
   activities: Activity[]
-
   addActivity: (activity: Omit<Activity, "id" | "createdAt">) => void
 }
 
-export const useActivityStore = create<ActivityState>((set) => ({
+function generateId(): string {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
 
+export const useActivityStore = create<ActivityState>((set) => ({
   activities: [],
 
   addActivity: (activity) =>
     set((state) => ({
       activities: [
         {
-          id: crypto.randomUUID(),
+          id: generateId(),
           createdAt: new Date().toISOString(),
-          ...activity
+          ...activity,
         },
-        ...state.activities
-      ]
-    }))
-
+        ...state.activities,
+      ],
+    })),
 }))

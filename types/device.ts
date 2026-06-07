@@ -11,6 +11,7 @@ export interface DeviceState {
 }
 
 export interface Room {
+  id?: number
   name: string
   dehumidifier: DeviceState
   exhaust: DeviceState

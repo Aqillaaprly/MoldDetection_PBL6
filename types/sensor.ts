@@ -12,13 +12,20 @@ export interface SensorHub {
   id: string
   name: string
   location: string
+
   humidity: number
   temperature: number
   light: number
+
+  moldRisk?: string
+  sensorStatus?: string
+
   is_online: boolean
   sensorType: string
   currentValue: string
+
   status: "ACTIVE" | "ALERT" | "INACTIVE"
+
   battery: number
   lastSync: string
 }

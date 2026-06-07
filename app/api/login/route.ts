@@ -1,24 +1,26 @@
 import { NextResponse } from "next/server"
+import { createSupabaseServerClient } from "@/lib/supabase-server"
 
 export async function POST(req: Request) {
-
   const { email, password } = await req.json()
 
-  if (email === "admin@mail.com" && password === "123456") {
+  const supabase = await createSupabaseServerClient()
 
-    const response = NextResponse.json({ success: true })
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
 
-    response.cookies.set("token", "loggedin", {
-      httpOnly: true,
-      path: "/",
-      maxAge: 60 * 60 * 24
-    })
-
-    return response
+  if (error) {
+    return NextResponse.json(
+      { error: "Email atau password salah" },
+      { status: 401 }
+    )
   }
 
-  return NextResponse.json(
-    { error: "Invalid login" },
-    { status: 401 }
-  )
+  return NextResponse.json({
+    success: true,
+    user: data.user,
+    session: data.session,
+  })
 }
