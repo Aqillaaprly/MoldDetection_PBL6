@@ -31,7 +31,7 @@ export default function LandingNavbar() {
           </Link>
           <Link
             href="/register"
-            className="rounded-xl bg-blue-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-800"
+            className="rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200 transition hover:opacity-90"
           >
             Get Started
           </Link>

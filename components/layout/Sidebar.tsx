@@ -1,6 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import { BarChart3 } from "lucide-react"
 import Link from "next/link"
 import clsx from "clsx"
 import {
@@ -54,6 +55,7 @@ export default function Sidebar() {
         <Menu href="/monitoring" icon={<Activity size={20}/>}        label="Monitoring" active={pathname === "/monitoring"} />
         <Menu href="/devices"    icon={<Cpu size={20}/>}             label="Devices"    active={pathname === "/devices"} />
         <Menu href="/settings"   icon={<Settings size={20}/>}        label="Settings"   active={pathname === "/settings"} />
+        <Menu href="/analytics" icon={<BarChart3 size={20}/>} label="Analytics" active={pathname === "/analytics"} />
       </nav>
     </aside>
   )

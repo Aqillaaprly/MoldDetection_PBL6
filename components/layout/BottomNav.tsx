@@ -4,12 +4,14 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import clsx from "clsx"
 import { LayoutDashboard, Activity, Cpu, Settings, Info } from "lucide-react"
+import { BarChart3 } from "lucide-react"
 
 const navItems = [
   { href: "/dashboard",           icon: LayoutDashboard, label: "Dashboard" },
   { href: "/monitoring", icon: Activity,         label: "Monitor"   },
   { href: "/devices",    icon: Cpu,              label: "Devices"   },
   { href: "/settings",   icon: Settings,         label: "Settings"  },
+  { href: "/analytics", icon: BarChart3, label: "Analytics" },
 ]
 
 export default function BottomNav() {

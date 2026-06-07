@@ -22,7 +22,10 @@ export default function StatCard({
         "rounded-2xl border border-gray-100 dark:border-gray-800",
         "shadow-sm",
         "sm:px-5 sm:py-4",
-        "px-3 py-3"
+        "px-3 py-3",
+        "sm:px-5 sm:py-4",
+        "lg:min-h-[115px]",
+        "flex items-center"
       )}
     >
       <div className="flex items-center gap-3">
