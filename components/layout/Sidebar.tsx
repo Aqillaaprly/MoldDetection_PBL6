@@ -53,9 +53,9 @@ export default function Sidebar() {
       <nav className="flex flex-col gap-2 px-3">
         <Menu href="/dashboard"  icon={<LayoutDashboard size={20}/>} label="Dashboard" active={pathname === "/dashboard"} />
         <Menu href="/monitoring" icon={<Activity size={20}/>}        label="Monitoring" active={pathname === "/monitoring"} />
+        <Menu href="/analytics"  icon={<BarChart3 size={20}/>}       label="Analytics"  active={pathname === "/analytics"} />
         <Menu href="/devices"    icon={<Cpu size={20}/>}             label="Devices"    active={pathname === "/devices"} />
         <Menu href="/settings"   icon={<Settings size={20}/>}        label="Settings"   active={pathname === "/settings"} />
-        <Menu href="/analytics" icon={<BarChart3 size={20}/>} label="Analytics" active={pathname === "/analytics"} />
       </nav>
     </aside>
   )

@@ -102,7 +102,6 @@ export default function AnalyticsPage() {
               <p className="text-xs text-gray-400">Total Data</p>
             </div>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{summary.total}</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">data points analyzed</p>
           </div>
 
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
@@ -111,7 +110,6 @@ export default function AnalyticsPage() {
               <p className="text-xs text-gray-400">Match MRI</p>
             </div>
             <p className="text-2xl font-bold text-green-600">{summary.correct}</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">ML cocok dengan MRI</p>
           </div>
 
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
@@ -120,7 +118,6 @@ export default function AnalyticsPage() {
               <p className="text-xs text-gray-400">Accuracy</p>
             </div>
             <p className="text-2xl font-bold text-indigo-600">{summary.accuracy}%</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">model accuracy</p>
           </div>
         </div>
       )}
@@ -140,7 +137,6 @@ export default function AnalyticsPage() {
                   <span className="text-xs font-bold text-gray-300 dark:text-gray-600">#{i + 1}</span>
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{room.name}</span>
                 </div>
-                <span className="text-xs text-gray-400">{room.total} data</span>
               </div>
 
               {/* Stacked bar */}
@@ -168,12 +164,59 @@ export default function AnalyticsPage() {
                 )}
               </div>
 
-              {/* Legend */}
-              <div className="flex gap-3 mt-1">
-                <span className="text-[10px] text-red-500 font-medium">HIGH {room.highPct}%</span>
-                <span className="text-[10px] text-orange-500 font-medium">MEDIUM {room.mediumPct}%</span>
-                <span className="text-[10px] text-green-500 font-medium">LOW {room.lowPct}%</span>
-              </div>
+              {/* Mobile Legend */}
+                <div className="flex md:hidden gap-3 mt-1 flex-wrap">
+                <span className="text-[10px] text-red-500 font-medium">
+                    HIGH {room.highPct}%
+                </span>
+
+                <span className="text-[10px] text-orange-500 font-medium">
+                    MEDIUM {room.mediumPct}%
+                </span>
+
+                <span className="text-[10px] text-green-500 font-medium">
+                    LOW {room.lowPct}%
+                </span>
+                </div>
+
+                {/* Desktop Legend */}
+                <div className="hidden md:block relative h-5 mt-2 text-[10px] font-medium">
+                {room.highPct > 0 && (
+                    <span
+                    className="absolute text-red-500"
+                    style={{
+                        left: `${room.highPct / 2}%`,
+                        transform: "translateX(-50%)",
+                    }}
+                    >
+                    HIGH {room.highPct}%
+                    </span>
+                )}
+
+                {room.mediumPct > 0 && (
+                    <span
+                    className="absolute text-orange-500"
+                    style={{
+                        left: `${room.highPct + room.mediumPct / 2}%`,
+                        transform: "translateX(-50%)",
+                    }}
+                    >
+                    MEDIUM {room.mediumPct}%
+                    </span>
+                )}
+
+                {room.lowPct > 0 && (
+                    <span
+                    className="absolute text-green-500"
+                    style={{
+                        left: `${room.highPct + room.mediumPct + room.lowPct / 2}%`,
+                        transform: "translateX(-50%)",
+                    }}
+                    >
+                    LOW {room.lowPct}%
+                    </span>
+                )}
+                </div>
             </div>
           ))}
         </div>
@@ -215,17 +258,29 @@ export default function AnalyticsPage() {
                 {p.rooms?.name ?? "-"}
                 </h3>
 
+                <div className="flex items-center gap-1.5">
                 {p.mri_label === p.ml_prediction ? (
-                <CheckCircle
-                    size={16}
-                    className="text-green-500"
-                />
+                    <>
+                    <span className="text-[11px] font-medium text-green-600">
+                        Match
+                    </span>
+                    <CheckCircle
+                        size={16}
+                        className="text-green-500"
+                    />
+                    </>
                 ) : (
-                <XCircle
-                    size={16}
-                    className="text-red-500"
-                />
+                    <>
+                    <span className="text-[11px] font-medium text-red-500">
+                        Mismatch
+                    </span>
+                    <XCircle
+                        size={16}
+                        className="text-red-500"
+                    />
+                    </>
                 )}
+                </div>
             </div>
 
             <div className="space-y-2 text-xs">

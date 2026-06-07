@@ -87,7 +87,6 @@ export default function MLRiskCard() {
           </div>
           <div>
             <h3 className="font-semibold text-sm text-gray-900 dark:text-white">ML Risk Analysis</h3>
-            <p className="text-[10px] text-gray-400">Spark MLlib · Random Forest</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
